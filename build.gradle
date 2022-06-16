@@ -2,6 +2,10 @@
 buildscript {
     ext {
         compose_version = '1.0.1'
+        kotlin_version = '1.6.10'
+        coroutines_version = '1.5.2'
+        accompanist_version = '0.22.0-rc'
+        room_version = '2.4.0'
     }
     repositories {
         google()
@@ -11,11 +15,40 @@ buildscript {
         classpath "com.android.tools.build:gradle:7.0.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21"
 
+        classpath 'com.google.dagger:hilt-android-gradle-plugin:2.38.1'
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+plugins {
+    id 'com.diffplug.spotless' version '6.0.0'
 }
+
+subprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    apply plugin: 'com.diffplug.spotless'
+
+    spotless {
+        kotlin {
+            target '**/*.kt'
+            targetExclude("$buildDir/**/*.kt")
+            targetExclude('bin/**/*.kt')
+
+            ktlint("0.43.0")
+//            licenseHeaderFile rootProject.file('spotless/copyright.kt')
+            trimTrailingWhitespace()
+            indentWithSpaces()
+            endWithNewline()
+        }
+    }
+}
+
+//task clean(type: Delete) {
+//    delete rootProject.buildDir
+//}
