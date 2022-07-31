@@ -10,6 +10,7 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 import xyz.graphitenerd.tassel.model.Bookmark
 import java.net.URL
+import java.util.concurrent.Executors
 
 @Database(entities = [Bookmark::class], version = 1, exportSchema = true)
 @TypeConverters(Converters::class)
@@ -30,13 +31,14 @@ abstract class AppDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context): AppDatabase {
             return Room.databaseBuilder(context, AppDatabase::class.java, "AppDatabase")
-                .addCallback(
-                    object : RoomDatabase.Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            Log.d("devdebugDATABASE", "Database created")
+                .setQueryCallback(
+                    object : RoomDatabase.QueryCallback {
+                        override fun onQuery(sqlQuery: String, bindArgs: MutableList<Any>) {
+                            Log.e("tassel","sqlquery: $sqlQuery")
+                            Log.e("tassel","sqlquery Args: $bindArgs")
                         }
-                    }
+                    },
+                    Executors.newSingleThreadExecutor()
                 ).build()
         }
     }

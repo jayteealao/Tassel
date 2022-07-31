@@ -11,13 +11,13 @@ import javax.inject.Singleton
 @Singleton
 class BookmarkRepository @Inject constructor(private val bookmarkDao: BookmarkDao) {
 
-    suspend fun getAllBookmarks(): Flow<PagingData<Bookmark>> {
-        val data = bookmarkDao.getAllBookmarks()
-        return Pager(
-            PagingConfig(20)
-        ) {
-            data
-        }.flow
+    fun getAllBookmarks(): Flow<List<Bookmark>> {
+        return bookmarkDao.getAllBookmarks()
+//        return Pager(
+//            PagingConfig(20)
+//        ) {
+//            data
+//        }.flow
     }
 
     fun countBookmarks() = bookmarkDao.countBookmarks()
