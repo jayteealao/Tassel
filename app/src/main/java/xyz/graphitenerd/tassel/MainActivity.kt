@@ -5,29 +5,19 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
-import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.raqun.beaverlib.Beaver
-import com.raqun.beaverlib.data.DataSource
-import com.raqun.beaverlib.model.MetaData
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import xyz.graphitenerd.tassel.data.BookmarkLocalDataSource
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkViewModel
-import xyz.graphitenerd.tassel.ui.AddBookmark
-import xyz.graphitenerd.tassel.ui.HomeAppBar
+import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -35,37 +25,24 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Beaver.build(this, localDataSource = BookmarkLocalDataSource() )
+        Beaver.build(this )
         Log.e("tassel", "beaver is initialized : ${Beaver.isInitialized()}")
 
         val bookmarkViewModel: BookmarkViewModel by viewModels()
+        val newBookmarkViewModel: NewBookmarkViewModel by viewModels()
         setContent {
             TasselTheme {
                 // A surface container using the 'background' color from the theme
-                val scope = rememberCoroutineScope()
-                val scaffoldState = rememberBottomSheetScaffoldState()
-
-                BottomSheetScaffold(
-                    scaffoldState = scaffoldState,
-                    topBar = { HomeAppBar { scope.launch { scaffoldState.bottomSheetState.expand() } } },
-                    sheetContent = {
-                        Box(modifier = Modifier.wrapContentSize()) {
-                            AddBookmark(
-                                onAccept = {
-                                    bookmarkViewModel.saveBookmarkForm()
-                                    Log.e("tassel", "form submitted")
-                                           },
-                                formState = bookmarkViewModel.addNewBookmarkForm
-                            )
-                        }
-                    },
-                    sheetPeekHeight = 0.dp
-
-                ) {
-                    RecentsScreen(
-                        bookmarksFlow = bookmarkViewModel.bookmarks
-//                    uiState = list
-                    )
+                val navController = rememberNavController()
+                NavHost(navController= navController, startDestination = "recents") {
+                    composable("recents") {
+                        RecentScreen(
+                            bookmarkViewModel,
+                            newBookmarkViewModel,
+                            onNavigateToAddNew = { navController.navigate("addNew") }
+                        )
+                    }
+                    composable("addNew") { AddBookmarkScreen() }
                 }
             }
         }

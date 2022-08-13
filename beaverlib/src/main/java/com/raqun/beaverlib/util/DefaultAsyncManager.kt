@@ -15,7 +15,6 @@ class DefaultAsyncManager(
     }
 
     @CallSuper
-    @Synchronized
     override suspend fun <T> handleAsync(block: suspend CoroutineScope.() -> T): Deferred<T> {
         val deferred: Deferred<T> = async { block() }
         deferredObjects.add(deferred)
@@ -24,7 +23,6 @@ class DefaultAsyncManager(
     }
 
     @CallSuper
-    @Synchronized
     override suspend fun <T> handleAsyncAwait(block: suspend CoroutineScope.() -> T): T {
         return handleAsync(block).await()
     }

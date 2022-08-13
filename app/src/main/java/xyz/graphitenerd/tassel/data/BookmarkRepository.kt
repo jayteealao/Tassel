@@ -1,15 +1,14 @@
 package xyz.graphitenerd.tassel.data
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import xyz.graphitenerd.tassel.model.Bookmark
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BookmarkRepository @Inject constructor(private val bookmarkDao: BookmarkDao) {
+class BookmarkRepository @Inject constructor(
+    private val bookmarkDao: BookmarkDao
+    ) {
 
     fun getAllBookmarks(): Flow<List<Bookmark>> {
         return bookmarkDao.getAllBookmarks()
