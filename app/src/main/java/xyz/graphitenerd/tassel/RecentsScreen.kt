@@ -33,29 +33,15 @@ fun RecentScreen(
     newBookmarkViewModel: NewBookmarkViewModel,
     onNavigateToAddNew: () -> Unit = {}
 ) {
-    val scope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState()
 
-    BottomSheetScaffold(
+    val scaffoldState = rememberScaffoldState()
+
+    Scaffold(
         scaffoldState = scaffoldState,
         topBar = { HomeAppBar(onClickTasselButton = onNavigateToAddNew) },
-        sheetContent = {
-            Box(modifier = Modifier.wrapContentSize()) {
-                AddBookmark(
-                    onAccept = {
-                        newBookmarkViewModel.saveBookmarkForm()
-                        Log.e("tassel", "form submitted")
-                    },
-                    formState = newBookmarkViewModel.addNewBookmarkForm
-                )
-            }
-        },
-        sheetPeekHeight = 0.dp
-
     ) {
         RecentsScreenContent(
             bookmarksFlow = bookmarkViewModel.bookmarks
-//                    uiState = list
         )
     }
 }
@@ -64,7 +50,7 @@ fun RecentScreen(
 fun RecentsScreenContent(bookmarksFlow: Flow<List<Bookmark>>) {
     val bookmarks: State<List<Bookmark>> = bookmarksFlow.collectAsState(emptyList<Bookmark>())
     if (bookmarks.value.isEmpty()) {
-        EmptyBookmark()
+        EmptyBookmarkFolder()
     } else {
         Contents(bookmarks.value)
     }
@@ -73,7 +59,7 @@ fun RecentsScreenContent(bookmarksFlow: Flow<List<Bookmark>>) {
 @Composable
 fun RecentsScreenContent(uiState: List<Bookmark>) {
     if (uiState.isEmpty()) {
-        EmptyBookmark()
+        EmptyBookmarkFolder()
     } else {
         Contents(uiState)
     }

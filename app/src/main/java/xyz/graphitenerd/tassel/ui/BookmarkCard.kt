@@ -47,17 +47,16 @@ fun BookmarkCard(bookmark: Bookmark) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row {
-                Image(
-                    painter = rememberImagePainter(
-                        data = bookmark.imageUrl,
-                        builder = {
-                            size(60)
-                            placeholder(R.drawable.placeholder)
-                            build()
-                        }
-                    ),
-                    contentDescription = "",
-                    modifier = Modifier.size(72.dp),
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(bookmark.imageUrl)
+                        .size(60)
+                        .crossfade(true)
+                        .build(),
+                    placeholder= painterResource(R.drawable.placeholder),
+                    contentDescription = "favicon",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.clip(RectangleShape).size(72.dp).padding(4.dp)
 
                 )
                 Column(
@@ -78,19 +77,19 @@ fun BookmarkCard(bookmark: Bookmark) {
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        Image(
-                            painter = rememberImagePainter(
-                                data = bookmark.favIcon,
-                                builder = {
-                                    size(48)
-                                    transformations(CircleCropTransformation())
-                                    placeholder(R.drawable.placeholder)
-                                    build()
-                                }
-                            ),
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(bookmark.favIcon)
+                                .size(48)
+                                .crossfade(true)
+                                .build(),
+                            placeholder= painterResource(R.drawable.placeholder),
                             contentDescription = "favicon",
-                            modifier = Modifier.padding(8.dp)
-                        )
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.clip(RectangleShape).size(24.dp)
+
+                            )
+//                            modifier = Modifier.padding(8.dp)
                     }
 
                     Spacer(Modifier.height(2.dp))

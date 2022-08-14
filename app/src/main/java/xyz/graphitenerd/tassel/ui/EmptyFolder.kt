@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import xyz.graphitenerd.tassel.R
 
 @Composable
-fun EmptyBookmark() {
+fun EmptyBookmarkFolder() {
 
     Surface(modifier = Modifier.fillMaxSize()) {
         
@@ -29,5 +29,5 @@ fun EmptyBookmark() {
 @Preview
 @Composable
 fun previewEF() {
-    EmptyBookmark()
+    EmptyBookmarkFolder()
 }
