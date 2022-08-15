@@ -12,7 +12,7 @@ import xyz.graphitenerd.tassel.model.Bookmark
 import java.net.URL
 import java.util.concurrent.Executors
 
-@Database(entities = [Bookmark::class], version = 1, exportSchema = true)
+@Database(entities = [Bookmark::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bookmarkDao(): BookmarkDao

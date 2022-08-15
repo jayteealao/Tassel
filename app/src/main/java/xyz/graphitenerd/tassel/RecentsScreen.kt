@@ -1,53 +1,65 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package xyz.graphitenerd.tassel
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingData
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.items
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
-import okhttp3.internal.toImmutableList
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkUiState
-import xyz.graphitenerd.tassel.ui.BookmarkCard
-import xyz.graphitenerd.tassel.ui.BottomNavButton
-import xyz.graphitenerd.tassel.ui.EmptyBookmark
-import xyz.graphitenerd.tassel.ui.SearchBar
+import xyz.graphitenerd.tassel.model.BookmarkViewModel
+import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
+import xyz.graphitenerd.tassel.ui.*
 
 @Composable
-fun RecentsScreen(bookmarksFlow: Flow<List<Bookmark>>) {
+fun RecentScreen(
+    bookmarkViewModel: BookmarkViewModel,
+    newBookmarkViewModel: NewBookmarkViewModel,
+    onNavigateToAddNew: () -> Unit = {}
+) {
+
+    val scaffoldState = rememberScaffoldState()
+
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = { HomeAppBar(onClickTasselButton = onNavigateToAddNew) },
+    ) {
+        RecentsScreenContent(
+            bookmarksFlow = bookmarkViewModel.bookmarks
+        )
+    }
+}
+
+@Composable
+fun RecentsScreenContent(bookmarksFlow: Flow<List<Bookmark>>) {
     val bookmarks: State<List<Bookmark>> = bookmarksFlow.collectAsState(emptyList<Bookmark>())
     if (bookmarks.value.isEmpty()) {
-        EmptyBookmark()
+        EmptyBookmarkFolder()
     } else {
         Contents(bookmarks.value)
     }
 }
 
 @Composable
-fun RecentsScreen(uiState: List<Bookmark>) {
+fun RecentsScreenContent(uiState: List<Bookmark>) {
     if (uiState.isEmpty()) {
-        EmptyBookmark()
+        EmptyBookmarkFolder()
     } else {
         Contents(uiState)
     }

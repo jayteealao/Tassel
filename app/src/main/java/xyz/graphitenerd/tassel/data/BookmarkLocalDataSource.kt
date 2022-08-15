@@ -8,10 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import xyz.graphitenerd.tassel.MainApplication
-import xyz.graphitenerd.tassel.model.Bookmark
-import java.security.AccessController.getContext
 import javax.inject.Inject
-import javax.inject.Singleton
 
 
 // an implementation of beavers Datasource.Local interface over my bookmarks db
