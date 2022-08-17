@@ -2,7 +2,6 @@ package xyz.graphitenerd.tassel.model
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.boguszpawlowski.chassis.Field
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import xyz.graphitenerd.tassel.data.BookmarkRepository
@@ -18,10 +17,3 @@ class BookmarkViewModel @Inject constructor(val bookmarkRepository: BookmarkRepo
 
     private val bottomNavBarState = MutableStateFlow(ToggleButtonState.RECENTS)
 }
-
-data class BookMarkForm(
-    val title: Field<BookMarkForm, String?>,
-    val address: Field<BookMarkForm, String>
-)
-
-
