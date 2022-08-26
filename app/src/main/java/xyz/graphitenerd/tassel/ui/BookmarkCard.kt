@@ -1,32 +1,27 @@
 package xyz.graphitenerd.tassel.ui
 
 import android.util.Log
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
-import coil.transform.CircleCropTransformation
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.model.Bookmark
 
@@ -53,7 +48,7 @@ fun BookmarkCard(bookmark: Bookmark) {
                         .size(60)
                         .crossfade(true)
                         .build(),
-                    placeholder= painterResource(R.drawable.placeholder),
+                    placeholder = painterResource(R.drawable.placeholder),
                     contentDescription = "favicon",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.clip(RectangleShape).size(72.dp).padding(4.dp)
@@ -73,7 +68,7 @@ fun BookmarkCard(bookmark: Bookmark) {
                                 text = it,
                                 maxLines = 2,
                                 modifier = Modifier.weight(9f),
-                    //                        modifier = Modifier.fillMaxWidth(0.8f),
+                                //                        modifier = Modifier.fillMaxWidth(0.8f),
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
@@ -83,12 +78,12 @@ fun BookmarkCard(bookmark: Bookmark) {
                                 .size(48)
                                 .crossfade(true)
                                 .build(),
-                            placeholder= painterResource(R.drawable.placeholder),
+                            placeholder = painterResource(R.drawable.placeholder),
                             contentDescription = "favicon",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.clip(RectangleShape).size(24.dp)
 
-                            )
+                        )
 //                            modifier = Modifier.padding(8.dp)
                     }
 
@@ -124,7 +119,7 @@ fun BookmarkCardPreview() {
         title = "Compose layout basics  |  Jetpack Compose  |  Android Developers",
         rawUrl = "https://developer.android.com/reference/kotlin/androidx/compose/ui/Modifier",
         favIcon = "https://www.gstatic.com/devrel-devsite/prod/v84e6f6a61298bbae5bb110" +
-                "c196e834c7f21fe3fb34e722925433ddb936d280c9/android/images/favicon.png"
+            "c196e834c7f21fe3fb34e722925433ddb936d280c9/android/images/favicon.png"
     )
 
     BookmarkCard(sampleBookmark)

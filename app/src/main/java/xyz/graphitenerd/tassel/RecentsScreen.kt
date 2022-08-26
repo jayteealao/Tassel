@@ -77,11 +77,10 @@ private fun BottomNavBar(uiState: BookmarkUiState) {
     }
 }
 
-
 @Composable
 private fun Contents(bookmarks: List<Bookmark>) {
     LazyColumn(
-        contentPadding = PaddingValues(20.dp,0.dp,20.dp,72.dp)
+        contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 72.dp)
     ) {
         item {
 
@@ -96,7 +95,7 @@ private fun Contents(bookmarks: List<Bookmark>) {
             )
         }
         items(bookmarks) { bookmark ->
-            Log.e("tassel", "in recent screen column, current bookmark $bookmark")
+//            Log.e("tassel", "in recent screen column, current bookmark $bookmark")
             BookmarkCard(bookmark = bookmark)
             Divider(
                 color = Color.Black,
@@ -108,12 +107,12 @@ private fun Contents(bookmarks: List<Bookmark>) {
 @Preview
 @Composable
 fun previewBS() {
-    val sampleBookmark = MutableList(10){
+    val sampleBookmark = MutableList(10) {
         Bookmark(
             title = "Compose layout basics  |  Jetpack Compose  |  Android Developers",
             rawUrl = "https://developer.android.com/reference/kotlin/androidx/compose/ui/Modifier",
             favIcon = "https://www.gstatic.com/devrel-devsite/prod/v84e6f6a61298bbae5bb110" +
-                        "c196e834c7f21fe3fb34e722925433ddb936d280c9/android/images/favicon.png"
+                "c196e834c7f21fe3fb34e722925433ddb936d280c9/android/images/favicon.png"
         )
     }
 //    val uiState = BookmarkUiState(isEmpty = false, bookmarks = MutableStateFlow(PagingData.from(sampleBookmark)))

@@ -6,10 +6,22 @@ buildscript {
         coroutines_version = '1.5.2'
         accompanist_version = '0.22.0-rc'
         room_version = '2.4.3'
+
+        // https://github.com/JLLeitschuh/ktlint-gradle/releases
+        ktlintPluginVersion = "10.2.0"
+
+        // https://github.com/detekt/detekt/releases
+        detektVersion = "1.19.0"
+
+        // Source: https://developer.android.com/jetpack/androidx/releases/lifecycle#2.6.0-alpha01
+        lifecycle_version = "2.6.0-alpha01"
     }
     repositories {
         google()
         mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
 //        maven { url 'https://www.jitpack.io'}
     }
     dependencies {
@@ -18,39 +30,35 @@ buildscript {
 
         classpath 'com.google.dagger:hilt-android-gradle-plugin:2.43.1'
 
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:$ktlintPluginVersion"
+        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:$detektVersion"
+
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
-//plugins {
-//    id 'com.diffplug.spotless' version '6.9.1'
-//}
-
 subprojects {
+
+    apply from: "../buildscripts/ktlint.gradle"
+    apply from: "../buildscripts/detekt.gradle"
+
     repositories {
         google()
         mavenCentral()
-//        maven { url "https://jitpack.io" }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 
-//    apply plugin: 'com.diffplug.spotless'
-//
-//    spotless {
-//        kotlin {
-//            target '**/*.kt'
-//            targetExclude("$buildDir/**/*.kt")
-//            targetExclude('bin/**/*.kt')
-//
-//            ktlint("0.43.0")
-////            licenseHeaderFile rootProject.file('spotless/copyright.kt')
-//            trimTrailingWhitespace()
-//            indentWithSpaces()
-//            endWithNewline()
-//        }
-//    }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+//tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+//    kotlinOptions {
+//        freeCompilerArgs += "-Xcontext-receivers"
+//    }
+//}

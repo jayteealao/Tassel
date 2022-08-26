@@ -23,9 +23,10 @@ fun OutlinedTextFieldWithLabel(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    modifier: Modifier = Modifier) {
+    modifier: Modifier = Modifier
+) {
 
-    Column(modifier = modifier){
+    Column(modifier = modifier) {
         Text(
             text = label,
             modifier = Modifier.padding(20.dp, 0.dp, 0.dp, 0.dp)
@@ -59,10 +60,12 @@ fun Content(
 
 //    TODO consider encapsulating parameters in a remember hook
     Card(modifier = Modifier) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 20.dp)
         ) {
-            Text(text = "Add New Bookmark",
+            Text(
+                text = "Add New Bookmark",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
             )
@@ -92,8 +95,6 @@ fun Content(
             ) {
                 Text(text = "Add Bookmark")
             }
-
-
         }
     }
 }
@@ -103,13 +104,12 @@ fun AddBookmark(onAccept: () -> Unit, formState: Chassis<BookMarkForm>) {
 
     val bookmarkForm = formState.state.collectAsState()
     Content(
-    titleValue = bookmarkForm.value.title.value ?: "",
-    onTitleValueChange = { formState.update(BookMarkForm::title, it) },
-    addressValue = bookmarkForm.value.address.value ?: "",
-    onAddressValueChange = { formState.update(BookMarkForm::address, it) },
-    onAcceptButton = onAccept
+        titleValue = bookmarkForm.value.title.value ?: "",
+        onTitleValueChange = { formState.update(BookMarkForm::title, it) },
+        addressValue = bookmarkForm.value.address.value ?: "",
+        onAddressValueChange = { formState.update(BookMarkForm::address, it) },
+        onAcceptButton = onAccept
     )
-
 }
 
 @Composable

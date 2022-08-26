@@ -25,7 +25,4 @@ class BookmarkRepository @Inject constructor(
     fun addBookmark(bookmark: Bookmark) = bookmarkDao.addBookmark(bookmark)
 
     fun getFolders(id: Long? = null) = folderDao.getFolderChildren(id)
-
-
 }
-

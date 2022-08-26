@@ -1,6 +1,5 @@
 package xyz.graphitenerd.tassel.data
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -34,5 +33,4 @@ interface BookmarkDao {
 
     @Query("SELECT count(*) FROM bookmark")
     fun countBookmarks(): Flow<Int>
-
 }
