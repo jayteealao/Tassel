@@ -7,8 +7,9 @@ import javax.inject.Singleton
 
 @Singleton
 class BookmarkRepository @Inject constructor(
-    private val bookmarkDao: BookmarkDao
-    ) {
+    private val bookmarkDao: BookmarkDao,
+    private val folderDao: FolderDao
+) {
 
     fun getAllBookmarks(): Flow<List<Bookmark>> {
         return bookmarkDao.getAllBookmarks()
@@ -22,6 +23,9 @@ class BookmarkRepository @Inject constructor(
     fun countBookmarks() = bookmarkDao.countBookmarks()
 
     fun addBookmark(bookmark: Bookmark) = bookmarkDao.addBookmark(bookmark)
+
+    fun getFolders(id: Long? = null) = folderDao.getFolderChildren(id)
+
 
 }
 
