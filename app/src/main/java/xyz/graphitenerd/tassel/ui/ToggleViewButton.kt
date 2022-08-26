@@ -1,13 +1,8 @@
 package xyz.graphitenerd.tassel.ui
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults.buttonColors
@@ -16,11 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -102,7 +93,7 @@ enum class ToggleButtonState {
 }
 
 @Composable
-fun BottomNavButton(state: ToggleButtonState) {
+fun BottomNavButton(state: ToggleButtonState, onClick: (state: ToggleButtonState) -> Unit = {}) {
 
     var toggleButtonState by remember { mutableStateOf(state) }
 
@@ -113,6 +104,7 @@ fun BottomNavButton(state: ToggleButtonState) {
             text = "Recents",
             onClick = {
                 toggleButtonState = ToggleButtonState.RECENTS
+                onClick(toggleButtonState)
             },
             selected = toggleButtonState == ToggleButtonState.RECENTS
         )
@@ -122,6 +114,7 @@ fun BottomNavButton(state: ToggleButtonState) {
             text = "Folders",
             onClick = {
                 toggleButtonState = ToggleButtonState.FOLDERS
+                onClick(toggleButtonState)
             },
             selected = toggleButtonState == ToggleButtonState.FOLDERS
         )
