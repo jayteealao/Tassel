@@ -5,8 +5,16 @@ dependencyResolutionManagement {
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
         maven { url "https://jitpack.io" }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url "https://maven.pkg.jetbrains.space/public/p/compose/dev"
+        }
     }
 }
 rootProject.name = "Tassel"
 include ':app'
 include ':beaverlib'
+include ':bonsai'
+//include ':bonsai'

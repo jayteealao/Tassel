@@ -25,6 +25,8 @@ import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.EmptyBookmark
 import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.BookmarkCard
+import xyz.graphitenerd.tassel.ui.Folder
+import xyz.graphitenerd.tassel.ui.SelectFolder
 
 @Composable
 fun AddBookmarkScreen() {
@@ -34,6 +36,9 @@ fun AddBookmarkScreen() {
     val formState = formChassis.state.collectAsState()
     val previewBookmark = addNewVM.bookmarkStateFlow.collectAsState()
 
+    LaunchedEffect(true) {
+        formChassis.update(BookMarkForm::folder, Folder())
+    }
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = {
@@ -84,6 +89,13 @@ fun AddBookmarkScreen() {
                 show = previewBookmark.value != EmptyBookmark,
                 bookmark = if (previewBookmark.value == EmptyBookmark) { null
                    } else { previewBookmark.value as Bookmark }
+            )
+            SelectFolder(
+                selectedFolder = formState.value.folder.value ?: Folder(),
+                onSelect = {
+                    formChassis.update(BookMarkForm::folder, it.content)
+                },
+                tree = bookmarkViewModel.folderTree.buildBonsaiTree()
             )
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,

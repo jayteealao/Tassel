@@ -35,6 +35,11 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                 reduce {
                     copy(address = it)
                 }
+            },
+            folder = field {
+                reduce {
+                    copy( folder = it )
+                }
             }
         )
     }
@@ -50,6 +55,7 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                         _bookmarkStateFlow.value = metadataToBookmarkMapper.map(data)
                         if ((bookmarkStateFlow.value != EmptyBookmark) and (title() == null)) {
                             val bookmarkdata = bookmarkStateFlow.value as Bookmark
+                            bookmarkdata.folderId = folder().folderId
                             bookmarkForm.update(BookMarkForm::title, bookmarkdata.title)
                         }
                     }
@@ -71,7 +77,11 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                         val data = Beaver.load(address()).await()
                         Log.e("tassel", "metadata: $data")
                         if (data != null) {
-                            bookmarkRepository.addBookmark(metadataToBookmarkMapper.map(data))
+                            bookmarkRepository.addBookmark(
+                                metadataToBookmarkMapper.map(data).apply {
+                                    folderId = folder().folderId
+                                }
+                            )
                         }
                     }
                 }
