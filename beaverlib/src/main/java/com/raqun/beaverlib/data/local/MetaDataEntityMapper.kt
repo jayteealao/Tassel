@@ -32,4 +32,3 @@ class MetaDataEntityMapper : DbEntityMapper<MetaDataEntity, MetaData> {
         )
     }
 }
-
