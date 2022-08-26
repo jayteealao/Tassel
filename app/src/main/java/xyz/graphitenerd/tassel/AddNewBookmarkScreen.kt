@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,18 +21,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sebaslogen.resaca.hilt.hiltViewModelScoped
-import xyz.graphitenerd.tassel.model.BookMarkForm
-import xyz.graphitenerd.tassel.model.Bookmark
-import xyz.graphitenerd.tassel.model.EmptyBookmark
-import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
+import xyz.graphitenerd.tassel.model.*
 import xyz.graphitenerd.tassel.ui.BookmarkCard
 import xyz.graphitenerd.tassel.ui.Folder
 import xyz.graphitenerd.tassel.ui.SelectFolder
 
 @Composable
-fun AddBookmarkScreen() {
+fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: BookmarkViewModel) {
 
-    val addNewVM: NewBookmarkViewModel = hiltViewModelScoped()
     val formChassis = addNewVM.bookmarkForm
     val formState = formChassis.state.collectAsState()
     val previewBookmark = addNewVM.bookmarkStateFlow.collectAsState()

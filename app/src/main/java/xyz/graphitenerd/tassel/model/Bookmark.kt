@@ -42,7 +42,8 @@ sealed interface BookmarkMarker
 
 data class BookMarkForm(
     val title: Field<BookMarkForm, String?>,
-    val address: Field<BookMarkForm, String>
+    val address: Field<BookMarkForm, String>,
+    val folder: Field<BookMarkForm, Folder>
 )
 
 fun isValidURL() = Validator<String?> { value ->
