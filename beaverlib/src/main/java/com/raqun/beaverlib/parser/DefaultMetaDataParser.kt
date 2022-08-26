@@ -6,7 +6,6 @@ import com.raqun.beaverlib.util.resolve
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
-
 class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
     MetaDataParser {
 
@@ -140,6 +139,5 @@ class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
         private const val ATTR_CONTENT = "content"
         private const val ATTR_HREF = "href"
         private const val ATTR_PROPERTY = "property"
-
     }
 }

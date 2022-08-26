@@ -12,7 +12,6 @@ class MetaDataRepositoryImpl(
     asyncManager: AsyncManager
 ) : MetaDataRepository, AsyncManager by asyncManager {
 
-
     override suspend fun getMetaData(
         url: String,
         forceRefresh: Boolean,
