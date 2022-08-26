@@ -16,18 +16,25 @@ class DatabaseModule {
 
     @Singleton
     @Provides
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getInstance(context)
-    }
-
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase = Room.databaseBuilder(
+        context,
+        AppDatabase::class.java,
+        "AppDatabase"
+    ).addCallback(
+        object: RoomDatabase.Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                db.execSQL("INSERT INTO bookmark_folder values ( 1, 'home', NULL);")
+            }
+        }
+    ).build()
     @Provides
     fun provideBookmarkDao(appDatabase: AppDatabase): BookmarkDao {
         return appDatabase.bookmarkDao()
     }
 
-//    @Singleton
-//    @Provides
-//    fun providesBookmarkRepository(bookmarkDao: BookmarkDao): BookmarkRepository {
-//        return BookmarkRepository(bookmarkDao)
-//    }
+    @Provides
+    fun provideFolderDao(appDatabase: AppDatabase): FolderDao = appDatabase.folderDao()
 }
