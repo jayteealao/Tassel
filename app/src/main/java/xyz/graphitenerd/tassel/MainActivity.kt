@@ -27,7 +27,6 @@ import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkViewModel
-import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.BottomNavButton
 import xyz.graphitenerd.tassel.ui.ToggleButtonState
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
@@ -61,7 +60,8 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         modifier = Modifier.fillMaxSize(),
                         navController = navController,
-                        startDestination = Screens.RECENTS.name) {
+                        startDestination = Screens.RECENTS.name
+                    ) {
                         composable(Screens.RECENTS.name) {
                             RecentScreen(
                                 bookmarkViewModel = hiltViewModel(),
@@ -104,7 +104,8 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         navController.navigate(Screens.RECENTS.name)
                                     }
-                                } )
+                                }
+                            )
                         }
                     }
                 }

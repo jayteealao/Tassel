@@ -12,7 +12,7 @@ import io.github.boguszpawlowski.chassis.Invalid
 import io.github.boguszpawlowski.chassis.Valid
 import io.github.boguszpawlowski.chassis.Validator
 import kotlinx.parcelize.Parcelize
-import xyz.graphitenerd.tassel.ui.Folder
+import xyz.graphitenerd.tassel.ui.FolderTree
 
 @Parcelize
 @Entity(
@@ -43,7 +43,7 @@ sealed interface BookmarkMarker
 data class BookMarkForm(
     val title: Field<BookMarkForm, String?>,
     val address: Field<BookMarkForm, String>,
-    val folder: Field<BookMarkForm, Folder>
+    val folderTree: Field<BookMarkForm, FolderTree>
 )
 
 fun isValidURL() = Validator<String?> { value ->

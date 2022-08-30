@@ -12,12 +12,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -26,17 +24,13 @@ import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.model.Bookmark
 
 @Composable
-fun BookmarkCard(bookmark: Bookmark) {
+fun BookmarkCard(bookmark: Bookmark, modifier: Modifier = Modifier) {
     Log.d("checkvalue", "in bookmark card")
 
-//    var bookmark = remember { mutableStateOf(bookmark) }
-
-    var width: Dp = LocalConfiguration.current.screenWidthDp.dp
-
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(PaddingValues(0.dp, 20.dp)),
+            .padding(0.dp, 20.dp),
         elevation = 0.dp,
         shape = RectangleShape
     ) {

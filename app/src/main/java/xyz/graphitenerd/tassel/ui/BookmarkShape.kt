@@ -2,15 +2,11 @@ package xyz.graphitenerd.tassel.ui
 
 import android.graphics.Matrix
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.asAndroidPath
-import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 
-val BookmarkShape: Shape = object: Shape {
+val BookmarkShape: Shape = object : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
@@ -42,9 +38,11 @@ val BookmarkShape: Shape = object: Shape {
             path
                 .asAndroidPath()
                 .apply {
-                    transform(Matrix().apply {
-                        setScale(size.width / baseWidth, size.height / baseHeight)
-                    })
+                    transform(
+                        Matrix().apply {
+                            setScale(size.width / baseWidth, size.height / baseHeight)
+                        }
+                    )
                 }
                 .asComposePath()
         )

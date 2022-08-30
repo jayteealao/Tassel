@@ -27,7 +27,7 @@ class DatabaseModule {
         AppDatabase::class.java,
         "AppDatabase"
     ).addCallback(
-        object: RoomDatabase.Callback() {
+        object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
                 db.execSQL("INSERT INTO bookmark_folder values ( 1, 'home', NULL);")

@@ -36,9 +36,9 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                     copy(address = it)
                 }
             },
-            folder = field {
+            folderTree = field {
                 reduce {
-                    copy( folder = it )
+                    copy(folderTree = it)
                 }
             }
         )
@@ -55,7 +55,7 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                         _bookmarkStateFlow.value = metadataToBookmarkMapper.map(data)
                         if ((bookmarkStateFlow.value != EmptyBookmark) and (title() == null)) {
                             val bookmarkdata = bookmarkStateFlow.value as Bookmark
-                            bookmarkdata.folderId = folder().folderId
+                            bookmarkdata.folderId = folderTree().folderId
                             bookmarkForm.update(BookMarkForm::title, bookmarkdata.title)
                         }
                     }
@@ -79,7 +79,7 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                         if (data != null) {
                             bookmarkRepository.addBookmark(
                                 metadataToBookmarkMapper.map(data).apply {
-                                    folderId = folder().folderId
+                                    folderId = folderTree().folderId
                                 }
                             )
                         }

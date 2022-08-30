@@ -2,7 +2,6 @@
 
 package xyz.graphitenerd.tassel
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,7 +36,7 @@ fun RecentScreen(
 
     Scaffold(
         scaffoldState = scaffoldState,
-        topBar = { HomeAppBar(onClickTasselButton = onNavigateToAddNew) },
+        topBar = { HomeAppBar(onClickActionButton = onNavigateToAddNew) },
     ) {
         RecentsScreenContent(
             bookmarksFlow = bookmarkViewModel.bookmarks

@@ -14,15 +14,14 @@ import androidx.compose.ui.unit.sp
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Folder
-//import cafe.adriel.bonsai.core.Bonsai
-//import cafe.adriel.bonsai.core.node.Branch
-//import cafe.adriel.bonsai.core.node.Leaf
-//import cafe.adriel.bonsai.core.tree.Tree
 import xyz.graphitenerd.tassel.model.BookmarkFolder
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FolderCard(folder: BookmarkFolder) {
+fun FolderCard(folder: BookmarkFolder, onClick: () -> Unit) {
+
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
@@ -51,7 +50,7 @@ fun FolderCard(folder: BookmarkFolder) {
                 )
             }
             Divider(
-                modifier = Modifier.padding(horizontal = 20.dp),
+                modifier = Modifier.padding(horizontal = 2.dp),
                 color = Color.Black
             )
         }
@@ -61,6 +60,5 @@ fun FolderCard(folder: BookmarkFolder) {
 @Preview
 @Composable
 fun previewSelectFolder() {
-    FolderCard(folder = BookmarkFolder(id=1, name = "home", parentId = null))
+    FolderCard(folder = BookmarkFolder(id = 1, name = "home", parentId = null), onClick = {})
 }
-
