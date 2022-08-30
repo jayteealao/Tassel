@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Tassel</string>
+    <string name="title_activity_intent">Tassel</string>
 </resources>
