@@ -1,11 +1,10 @@
 package xyz.graphitenerd.tassel.data
 
 import com.raqun.beaverlib.data.local.DbEntityMapper
-import com.raqun.beaverlib.data.local.MetaDataEntityMapper
 import com.raqun.beaverlib.model.MetaData
 import xyz.graphitenerd.tassel.model.Bookmark
 
-class MetadataToBookmarkMapper : DbEntityMapper<Bookmark, MetaData>{
+class MetadataToBookmarkMapper : DbEntityMapper<Bookmark, MetaData> {
     override fun map(entity: Bookmark): MetaData {
         return MetaData(
             entity.rawUrl,
@@ -21,6 +20,7 @@ class MetadataToBookmarkMapper : DbEntityMapper<Bookmark, MetaData>{
 
     override fun map(domainObject: MetaData): Bookmark {
         return Bookmark(
+            0,
             domainObject.rawUrl,
             domainObject.url,
             domainObject.title,
