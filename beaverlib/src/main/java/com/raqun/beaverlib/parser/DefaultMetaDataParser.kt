@@ -3,20 +3,63 @@ package com.raqun.beaverlib.parser
 import com.raqun.beaverlib.model.MetaData
 import com.raqun.beaverlib.util.getHost
 import com.raqun.beaverlib.util.resolve
+import okhttp3.Dispatcher
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.util.concurrent.Executors
 
 class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
     MetaDataParser {
 
+//    moved to okhttp
+    val okhttpClient = OkHttpClient.Builder()
+        .followRedirects(true)
+        .followSslRedirects(true)
+        .dispatcher(Dispatcher(Executors.newFixedThreadPool(1)))
+        .build()
+
+//    check if its a google url that can be rewritten
+    private fun canRewrite(url: HttpUrl) = url.host.endsWith(".google.com") && url.encodedPath == "/url"
+
+//    rewrites google urls
+    fun rewrite(url: HttpUrl): HttpUrl {
+        if (!canRewrite(url)) return url
+
+        var outputUrl: HttpUrl = url
+        do {
+            outputUrl = (outputUrl.queryParameter("q") ?: outputUrl.queryParameter("url"))
+                ?.toHttpUrlOrNull()
+                ?: outputUrl
+        } while (canRewrite(outputUrl))
+        return outputUrl
+    }
+
     override suspend fun parse(url: String): MetaData? {
         try {
             val metaData = MetaData(url)
-            metaData.url = url
 
-            val doc: Document = Jsoup.connect(url)
-                .timeout(timeout)
-                .get()
+            val httpUrl = url.toHttpUrlOrNull()
+            var url = url
+
+            if (httpUrl != null) {
+                if (canRewrite(httpUrl)) {
+                    url = rewrite(httpUrl).toString()
+                }
+            }
+
+//            okhttp request
+            val request = Request.Builder()
+                .url(url).build()
+            val doc: Document = Jsoup.parse(
+                okhttpClient.newCall(request).execute().body?.string()
+            )
+//            val doc: Document = Jsoup.connect(url)
+//                .timeout(timeout)
+//                .get()
 
             val elements = doc.getElementsByTag(TAG_META)
 
@@ -26,6 +69,7 @@ class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
                 title = doc.title()
             }
             metaData.title = title
+            metaData.url = doc.location() ?: url
 
             // Parse Description
             var desc = doc.select(TAG_DESC).attr(ATTR_CONTENT)

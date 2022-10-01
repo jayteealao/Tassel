@@ -1,5 +1,6 @@
 package com.raqun.beaverlib
 
+import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
@@ -16,7 +17,7 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         // Context of the app under test.
-        val appContext: = InstrumentationRegistry.getInstrumentation().targetContext
+        val appContext: Context = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("xyz.graphitenerd.tassel", appContext.packageName)
     }
 }
