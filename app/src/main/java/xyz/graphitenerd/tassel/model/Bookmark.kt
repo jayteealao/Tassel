@@ -13,6 +13,7 @@ import io.github.boguszpawlowski.chassis.Valid
 import io.github.boguszpawlowski.chassis.Validator
 import kotlinx.parcelize.Parcelize
 import xyz.graphitenerd.tassel.ui.FolderTree
+import java.util.*
 
 @Parcelize
 @Entity(
@@ -22,10 +23,11 @@ import xyz.graphitenerd.tassel.ui.FolderTree
             parentColumns = arrayOf("id"),
             childColumns = arrayOf("folderId")
         )
-    ]
+    ],
+    primaryKeys = ["rawUrl"]
 )
 data class Bookmark(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(defaultValue = "0") var id: Long = 0,
+    var id: Long = UUID.randomUUID().mostSignificantBits,
     var rawUrl: String,
     var url: String? = null,
     var title: String? = null,
@@ -34,7 +36,9 @@ data class Bookmark(
     var name: String? = null,
     val mediaType: String? = null,
     var favIcon: String? = null,
-    var folderId: Long? = null
+    var folderId: Long? = null,
+    @ColumnInfo(name = "creation_date")
+    var creationDate: Long = System.currentTimeMillis()
 ) : Parcelable, DbEntity, BookmarkMarker
 
 object EmptyBookmark : BookmarkMarker

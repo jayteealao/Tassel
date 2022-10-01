@@ -8,15 +8,15 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import cafe.adriel.bonsai.core.Bonsai
-import cafe.adriel.bonsai.core.node.CustomBranch
-import cafe.adriel.bonsai.core.node.CustomLeaf
+import cafe.adriel.bonsai.core.node.Branch
+import cafe.adriel.bonsai.core.node.Leaf
 import cafe.adriel.bonsai.core.node.Node
 import cafe.adriel.bonsai.core.tree.Tree
 import cafe.adriel.bonsai.core.tree.TreeScope
@@ -31,9 +31,9 @@ import javax.inject.Singleton
 @Composable
 fun SelectFolder(
 //    bookmarkViewModel: BookmarkViewModel,
-    selectedFolder: Folder,
-    onSelect: (Node<Folder>) -> Unit = {},
-    tree: Tree<Folder>,
+    selectedFolder: FolderTree,
+    onSelect: (Node<FolderTree>) -> Unit = {},
+    tree: Tree<FolderTree>,
 ) {
 
     var toggleVisibility by remember { mutableStateOf(false) }
@@ -42,7 +42,6 @@ fun SelectFolder(
 
     Column(
         modifier = Modifier
-
             .fillMaxWidth()
             .wrapContentHeight()
             .heightIn(max = 320.dp)
@@ -53,7 +52,8 @@ fun SelectFolder(
                 .clickable { toggleVisibility = !toggleVisibility }
                 .padding(horizontal = 4.dp, vertical = 4.dp)
                 .paddingFromBaseline(top = 4.dp),
-            text = "Select Folder: ${selectedFolder.folderName.uppercase()}")
+            text = "Select Folder: ${selectedFolder.folderName.uppercase()}"
+        )
 
         AnimatedVisibility(visible = toggleVisibility) {
             Bonsai(
@@ -69,21 +69,21 @@ fun SelectFolder(
 }
 
 @Singleton
-data class Folder constructor(
+data class FolderTree constructor(
     val folderName: String = "home",
     val folderId: Long = 1,
-    var children: MutableList<Folder?> = mutableListOf(),
+    var children: MutableList<FolderTree?> = mutableListOf(),
 ) {
 
     //    @Composable
     fun buildFolderTree(VM: BookmarkViewModel) {
-        //todo: change to ??launchedeffect
+        // todo: change to ??launchedeffect
 //        val scope = rememberCoroutineScope()
         VM.viewModelScope.launch(Dispatchers.IO) {
             for (bookmarkFolder in VM.getFolderChildren(folderId)) {
-                val childFolder = Folder(bookmarkFolder.name, bookmarkFolder.id)
-                childFolder.buildFolderTree(VM)
-                children.add(childFolder)
+                val childFolderTree = FolderTree(bookmarkFolder.name, bookmarkFolder.id)
+                childFolderTree.buildFolderTree(VM)
+                children.add(childFolderTree)
             }
         }
     }
@@ -93,47 +93,64 @@ data class Folder constructor(
     fun buildBranchAndLeaves() {
         if (!children.isEmpty()) {
             Log.d("bonsai tree count", "${children.size}")
-            CustomBranch<Folder>(
-                content = this@Folder,
-                customIcon = { Icon(
-                    imageVector = FontAwesomeIcons.Solid.Folder,
-                    contentDescription = "folder icon"
-                )},
-                customContent = {
+            Branch<FolderTree>(
+                content = this@FolderTree,
+                customIcon = {
+                    Icon(
+                        imageVector = FontAwesomeIcons.Solid.Folder,
+                        contentDescription = "folder icon",
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                customName = {
                     Text(
                         modifier = Modifier.padding(horizontal = 8.dp),
                         text = it.content.folderName
-                    )}
+                    )
+                }
             ) {
                 children.forEach { it?.buildBranchAndLeaves() }
             }
         } else {
-            CustomLeaf(
-                content = this@Folder,
-                customIcon = { Icon(
-                    imageVector = FontAwesomeIcons.Solid.Folder,
-                    contentDescription = "folder icon"
-                )}
-            ) {
-                Text(modifier = Modifier.padding(horizontal = 8.dp), text = it.content.folderName)
-            }
+            Leaf(
+                content = this@FolderTree,
+                customIcon = {
+                    Icon(
+                        imageVector = FontAwesomeIcons.Solid.Folder,
+                        contentDescription = "folder icon",
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                customName = {
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp),
+                        text = it.content.folderName
+                    )
+                }
+            )
         }
     }
     @Composable
-    fun buildBonsaiTree(): Tree<Folder> {
+    fun buildBonsaiTree(): Tree<FolderTree> {
+
         return Tree {
             if (children.isEmpty()) {
-                CustomLeaf(
-                    content = this@Folder,
-                    customIcon = { Icon(
-                        imageVector = FontAwesomeIcons.Solid.Folder,
-                        contentDescription = "folder icon"
-                    )}
-                ) {
-                    Text(modifier = Modifier.padding(horizontal = 8.dp), text = it.content.folderName)
-                }
+                Leaf(
+                    content = this@FolderTree,
+                    customIcon = {
+                        Icon(
+                            imageVector = FontAwesomeIcons.Solid.Folder,
+                            contentDescription = "folder icon",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    },
+                    customName = {
+                        Text(modifier = Modifier.padding(horizontal = 8.dp), text = it.content.folderName)
+                    }
+                )
             } else {
-                this@Folder.buildBranchAndLeaves()
+                this@FolderTree.buildBranchAndLeaves()
             }
         }
     }

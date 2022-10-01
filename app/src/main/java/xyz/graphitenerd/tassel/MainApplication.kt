@@ -6,13 +6,10 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class MainApplication : Application() {
 
-    override fun onCreate() {
-        super.onCreate()
-        instance = this
-    }
+//    @Inject lateinit var workerFactory: HiltWorkerFactory
 
-    companion object {
-        lateinit var instance: MainApplication
-            private set
-    }
+//    override fun getWorkManagerConfiguration() =
+//        Configuration.Builder()
+//            .setWorkerFactory(workerFactory)
+//            .build()
 }

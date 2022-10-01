@@ -1,26 +1,29 @@
 package xyz.graphitenerd.tassel.data
 
+import android.content.Context
 import android.util.Log
 import com.raqun.beaverlib.data.DataSource
 import com.raqun.beaverlib.model.MetaData
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import xyz.graphitenerd.tassel.MainApplication
 import javax.inject.Inject
 
 
 // an implementation of beavers Datasource.Local interface over my bookmarks db
-class BookmarkLocalDataSource @Inject constructor() : DataSource.Local<String, MetaData> {
+class BookmarkLocalDataSource @Inject constructor( @ApplicationContext context: Context) : DataSource.Local<String, MetaData> {
 
     @Inject
     lateinit var bookmarkDao: BookmarkDao
 
     init {
         val bookmarkDaoEPFactory = EntryPointAccessors.fromApplication(
-            MainApplication.instance.applicationContext,
-            BookmarkDaoEntryPoint::class.java)
+            context,
+            BookmarkDaoEntryPoint::class.java
+        )
 
         bookmarkDao = bookmarkDaoEPFactory.bookmarkDao
     }
@@ -60,5 +63,4 @@ class BookmarkLocalDataSource @Inject constructor() : DataSource.Local<String, M
 interface BookmarkDaoEntryPoint {
 
     val bookmarkDao: BookmarkDao
-
 }

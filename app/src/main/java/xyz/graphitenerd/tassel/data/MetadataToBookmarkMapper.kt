@@ -20,15 +20,14 @@ class MetadataToBookmarkMapper : DbEntityMapper<Bookmark, MetaData> {
 
     override fun map(domainObject: MetaData): Bookmark {
         return Bookmark(
-            0,
-            domainObject.rawUrl,
-            domainObject.url,
-            domainObject.title,
-            domainObject.desc,
-            domainObject.imageUrl,
-            domainObject.name,
-            domainObject.mediaType,
-            domainObject.favIcon,
+            rawUrl = domainObject.rawUrl,
+            url = domainObject.url,
+            title = domainObject.title,
+            desc = domainObject.desc,
+            imageUrl = domainObject.imageUrl,
+            name = domainObject.name,
+            mediaType = domainObject.mediaType,
+            favIcon = domainObject.favIcon,
         )
     }
 }

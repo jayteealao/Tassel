@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sebaslogen.resaca.hilt.hiltViewModelScoped
 import xyz.graphitenerd.tassel.model.*
 import xyz.graphitenerd.tassel.ui.BookmarkCard
 import xyz.graphitenerd.tassel.ui.FolderTree
@@ -42,7 +41,6 @@ fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: Bookmar
     }
 
     LaunchedEffect(true) {
-        formChassis.update(BookMarkForm::folder, Folder())
         formChassis.update(BookMarkForm::folderTree, FolderTree())
     }
     Column(modifier = Modifier.fillMaxSize()) {
@@ -93,14 +91,13 @@ fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: Bookmar
             Divider(color = Color.Black)
             BookmarkPreview(
                 show = previewBookmark.value != EmptyBookmark,
-                bookmark = if (previewBookmark.value == EmptyBookmark) { null
-                   } else { previewBookmark.value as Bookmark }
+                bookmark = if (previewBookmark.value == EmptyBookmark) {
+                    null
+                } else { previewBookmark.value as Bookmark }
             )
             SelectFolder(
-                selectedFolder = formState.value.folder.value ?: Folder(),
                 selectedFolder = formState.value.folderTree.value ?: FolderTree(),
                 onSelect = {
-                    formChassis.update(BookMarkForm::folder, it.content)
                     formChassis.update(BookMarkForm::folderTree, it.content)
                 },
                 tree = bookmarkViewModel.folderTree.buildBonsaiTree()
@@ -137,13 +134,22 @@ fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: Bookmar
 }
 
 @Composable
-fun BookmarkPreview(show: Boolean, bookmark: Bookmark?) {
+fun BookmarkPreview(
+    show: Boolean,
+    bookmark: Bookmark?,
+    modifier: Modifier = Modifier
+) {
     AnimatedVisibility(
         visible = show,
-        modifier = Modifier.wrapContentHeight()
+        modifier = modifier
+            .wrapContentHeight()
+            .fillMaxWidth()
     ) {
         if (bookmark != null) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.background(Color.White)
+            ) {
                 BookmarkCard(bookmark = bookmark)
                 Divider(color = Color.Black)
             }

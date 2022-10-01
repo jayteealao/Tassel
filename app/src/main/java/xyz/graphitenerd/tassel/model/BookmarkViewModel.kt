@@ -1,44 +1,52 @@
 package xyz.graphitenerd.tassel.model
 
 import androidx.compose.ui.input.key.Key.Companion.F
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.data.BookmarkRepository
+import xyz.graphitenerd.tassel.data.MetadataToBookmarkMapper
 import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.ToggleButtonState
 import javax.inject.Inject
 
 @HiltViewModel
 class BookmarkViewModel @Inject constructor(
+    @ApplicationContext val context: Context,
     val bookmarkRepository: BookmarkRepository,
 ) : ViewModel() {
 
-    val _folders: MutableStateFlow<List<BookmarkFolder>> = MutableStateFlow(
-        listOf(BookmarkFolder(id = 1, name = "HOME", parentId = null)))
+    val bookmarks: Flow<List<Bookmark>> = bookmarkRepository.getRecentBookmarks()
 
-    val folders: StateFlow<List<BookmarkFolder>>
-        get() = _folders.asStateFlow()
+    var deletedBookmark: MutableStateFlow<Bookmark?> = MutableStateFlow(null)
+        private set
 
-    val bookmarks: Flow<List<Bookmark>> = bookmarkRepository.getAllBookmarks()
-
-    val folderTree: Folder = Folder()
     val folderTree: FolderTree = FolderTree()
 
     init {
         folderTree.buildFolderTree(this)
     }
 
-    fun getFolderChildren(id: Long? = null) = bookmarkRepository.getFolders(id)
+    fun addBookmark(bookmark: Bookmark) = bookmarkRepository.addBookmark(bookmark)
 
-    fun refreshFolders(id: Long? = null) {
-        _folders.value = getFolderChildren(id)
-    }
+    fun getFolderChildren(id: Long? = null) = bookmarkRepository.getFoldersByParentId(id)
 
     private val bookmarkCount = bookmarkRepository.countBookmarks()
 
     var bottomNavBarState = MutableStateFlow(ToggleButtonState.RECENTS)
+
+    fun refreshTree() = folderTree.buildFolderTree(this)
+
+    fun log(message: String) = Log.d("${this.javaClass.name}", message)
+
 }

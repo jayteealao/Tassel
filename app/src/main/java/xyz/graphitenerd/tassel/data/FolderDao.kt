@@ -18,6 +18,12 @@ interface FolderDao {
     @Query("SELECT * FROM bookmark_folder WHERE parentId = :id")
     fun getFolderChildren(id: Long?): List<BookmarkFolder>
 
+    @Query("SELECT * FROM bookmark_folder WHERE name = :name")
+    fun getFolderByName(name: String): BookmarkFolder
+
+    @Query("SELECT * FROM bookmark_folder WHERE id = :id")
+    fun getFolderById(id: Long): BookmarkFolder
+
     @Query(
         "SELECT folder.id AS id, folder.name AS name, " +
             "child_folder.parentId AS parentFolderId, " +
