@@ -1,8 +1,12 @@
 package xyz.graphitenerd.tassel.ui
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -18,21 +22,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.model.Bookmark
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun BookmarkCard(bookmark: Bookmark, modifier: Modifier = Modifier) {
     Log.d("checkvalue", "in bookmark card")
+    val context = LocalContext.current
 
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .background(Color.White)
             .padding(0.dp, 20.dp),
         elevation = 0.dp,
-        shape = RectangleShape
+        shape = RectangleShape,
+        onClick = {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(bookmark.rawUrl)
+            }
+            context.startActivity(intent)
+        }
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row {
