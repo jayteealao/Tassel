@@ -1,6 +1,5 @@
 package xyz.graphitenerd.tassel.model
 
-import androidx.compose.ui.input.key.Key.Companion.F
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -11,8 +10,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.data.BookmarkRepository
 import xyz.graphitenerd.tassel.data.MetadataToBookmarkMapper
@@ -49,4 +46,8 @@ class BookmarkViewModel @Inject constructor(
 
     fun log(message: String) = Log.d("${this.javaClass.name}", message)
 
+    fun deleteBookmark(bookmark: Bookmark) {
+        deletedBookmark.value = bookmark
+        bookmarkRepository.deleteBookmark(bookmark)
+    }
 }

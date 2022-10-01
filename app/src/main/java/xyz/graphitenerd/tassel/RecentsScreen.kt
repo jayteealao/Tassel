@@ -1,61 +1,94 @@
-@file:OptIn(ExperimentalMaterialApi::class)
-
 package xyz.graphitenerd.tassel
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Snackbar
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarResult
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 import xyz.graphitenerd.tassel.model.Bookmark
-import xyz.graphitenerd.tassel.model.BookmarkUiState
 import xyz.graphitenerd.tassel.model.BookmarkViewModel
 import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.*
 
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun RecentScreen(
     bookmarkViewModel: BookmarkViewModel,
     newBookmarkViewModel: NewBookmarkViewModel,
     onNavigateToAddNew: () -> Unit = {}
 ) {
-
     val scaffoldState = rememberScaffoldState()
-
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = { HomeAppBar(onClickActionButton = onNavigateToAddNew) },
+        snackbarHost = { snackbarHostState ->
+            SnackbarHost(hostState = snackbarHostState) {
+                Snackbar(
+                    modifier = Modifier.padding(bottom = 96.dp),
+                    snackbarData = it
+                )
+            }
+        }
     ) {
-        RecentsScreenContent(
-            bookmarksFlow = bookmarkViewModel.bookmarks
+
+        val snackbarState by bookmarkViewModel.deletedBookmark.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+
+//        TODO: if a bookmark deletion is undone, trying to undelete it again doesnt show the snackbar
+        LaunchedEffect(snackbarState) {
+            var result: SnackbarResult? = null
+            if (snackbarState != null) {
+                result = scaffoldState.snackbarHostState.showSnackbar("Bookmark Deleted", "UNDO")
+            }
+            if (result == SnackbarResult.ActionPerformed) {
+                withContext(Dispatchers.IO) {
+                    bookmarkViewModel.addBookmark(snackbarState!!)
+                }
+            }
+        }
+        RecentScreenContent(
+            bookmarksFlow = bookmarkViewModel.bookmarks,
+            deleteAction = { bookmarkViewModel.deleteBookmark(it) }
         )
     }
 }
 
 @Composable
-fun RecentsScreenContent(bookmarksFlow: Flow<List<Bookmark>>) {
-    val bookmarks: State<List<Bookmark>> = bookmarksFlow.collectAsState(emptyList<Bookmark>())
+fun RecentScreenContent(bookmarksFlow: Flow<List<Bookmark>>, deleteAction: (Bookmark) -> Unit = {}) {
+    val bookmarks: State<List<Bookmark>> = bookmarksFlow.collectAsState(emptyList())
     if (bookmarks.value.isEmpty()) {
         EmptyBookmarkFolder()
     } else {
-        Contents(bookmarks.value)
+        Contents(bookmarks.value, deleteAction)
     }
 }
 
 @Composable
-fun RecentsScreenContent(uiState: List<Bookmark>) {
+fun RecentScreenContent(uiState: List<Bookmark>) {
     if (uiState.isEmpty()) {
         EmptyBookmarkFolder()
     } else {
@@ -64,22 +97,10 @@ fun RecentsScreenContent(uiState: List<Bookmark>) {
 }
 
 @Composable
-private fun BottomNavBar(uiState: BookmarkUiState) {
-    Box(
-        modifier = Modifier
-            .background(color = Color(0xff, 0xff, 0xff, 128))
-            .fillMaxWidth()
-            .height(72.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        BottomNavButton(state = uiState.bottomNavBarState)
-    }
-}
-
-@Composable
-private fun Contents(bookmarks: List<Bookmark>) {
+private fun Contents(bookmarks: List<Bookmark>, deleteAction: (Bookmark) -> Unit = {}) {
+    val scope = rememberCoroutineScope()
     LazyColumn(
-        contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 72.dp)
+        contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 78.dp)
     ) {
         item {
 
@@ -93,12 +114,30 @@ private fun Contents(bookmarks: List<Bookmark>) {
                 color = Color.Black,
             )
         }
-        items(bookmarks) { bookmark ->
+        items(bookmarks, key = { it.id }) { bookmark ->
 //            Log.e("tassel", "in recent screen column, current bookmark $bookmark")
-            BookmarkCard(bookmark = bookmark)
-            Divider(
-                color = Color.Black,
+
+            val delete = SwipeAction(
+                icon = painterResource(id = R.drawable.icoutlinedelete),
+                background = Color.Red,
+                onSwipe = {
+                    scope.launch(Dispatchers.IO) {
+                        deleteAction(bookmark)
+                    }
+                }
             )
+            SwipeableActionsBox(
+                modifier = Modifier,
+                endActions = listOf(delete),
+                swipeThreshold = 96.dp,
+                backgroundUntilSwipeThreshold = Color.White
+            ) {
+                BookmarkCard(bookmark = bookmark)
+                Divider(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    color = Color.Black,
+                )
+            }
         }
     }
 }
