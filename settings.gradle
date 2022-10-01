@@ -16,5 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "Tassel"
 include ':app'
 include ':beaverlib'
-include ':bonsai'
+//include ':bonsai'
 //include ':bonsai'
