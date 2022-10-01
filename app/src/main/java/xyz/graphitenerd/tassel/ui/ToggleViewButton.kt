@@ -17,10 +17,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Folder
 import compose.icons.fontawesomeicons.solid.History
+import xyz.graphitenerd.tassel.Screens
 
 @Composable
 fun IconButton(icon: ImageVector, onClick: () -> Unit) {
@@ -117,6 +120,37 @@ fun BottomNavButton(state: ToggleButtonState, onClick: (state: ToggleButtonState
                 onClick(toggleButtonState)
             },
             selected = toggleButtonState == ToggleButtonState.FOLDERS
+        )
+    }
+}
+
+@Composable
+fun BottomNavButton(controller: NavController) {
+
+    val state by controller.currentBackStackEntryAsState()
+
+    Row(modifier = Modifier.wrapContentSize()) {
+
+        ToggleButton(
+            icon = FontAwesomeIcons.Solid.History,
+            text = "Recents",
+            onClick = {
+                if (controller.currentDestination?.route == Screens.FOLDERS.name) {
+                    controller.navigate(Screens.RECENTS.name)
+                }
+            },
+            selected = controller.currentDestination?.route == Screens.RECENTS.name
+        )
+
+        ToggleButton(
+            icon = FontAwesomeIcons.Solid.Folder,
+            text = "Folders",
+            onClick = {
+                if (controller.currentDestination?.route == Screens.RECENTS.name) {
+                    controller.navigate(Screens.FOLDERS.name)
+                }
+            },
+            selected = controller.currentDestination?.route == Screens.FOLDERS.name
         )
     }
 }

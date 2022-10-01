@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,7 +30,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkViewModel
 import xyz.graphitenerd.tassel.ui.BottomNavButton
-import xyz.graphitenerd.tassel.ui.ToggleButtonState
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
 @AndroidEntryPoint
@@ -60,7 +58,6 @@ class MainActivity : ComponentActivity() {
             }
             TasselTheme {
                 // A surface container using the 'background' color from the theme
-                val bottomNavButtonState: ToggleButtonState by bookmarkViewModel.bottomNavBarState.collectAsState()
 
                 Box(
                     modifier = Modifier
@@ -80,7 +77,10 @@ class MainActivity : ComponentActivity() {
                             RecentScreen(
                                 bookmarkViewModel = hiltViewModel(),
                                 newBookmarkViewModel = hiltViewModel(),
-                                onNavigateToAddNew = { navController.navigate(Screens.ADDNEW.name) }
+                                onNavigateToAddNew = {
+                                    navController.navigate(Screens.ADDNEW.name)
+//                                    bookmarkViewModel.loadJsonBookmarks()
+                                }
                             )
                         }
                         composable(Screens.ADDNEW.name) {
@@ -106,19 +106,7 @@ class MainActivity : ComponentActivity() {
                             contentAlignment = Alignment.TopCenter
                         ) {
                             BottomNavButton(
-                                state = bottomNavButtonState,
-                                onClick = { toggleButtonState ->
-//                                    Log.d("debug tassel ", "backstack destination ${navController.currentBackStackEntry?.destination?.route}")
-//                                    Log.d("debug tassel", "current destination ${navController.currentDestination?.route}")
-                                    if (
-                                        (navController.currentDestination?.route == Screens.RECENTS.name) and
-                                        (toggleButtonState.name != ToggleButtonState.RECENTS.name)
-                                    ) {
-                                        navController.navigate(Screens.FOLDERS.name)
-                                    } else {
-                                        navController.navigate(Screens.RECENTS.name)
-                                    }
-                                }
+                                navController
                             )
                         }
                     }
