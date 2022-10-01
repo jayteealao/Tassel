@@ -7,11 +7,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.graphitenerd.tassel.model.Bookmark
@@ -44,6 +47,17 @@ class MainActivity : ComponentActivity() {
 
         val bookmarkViewModel: BookmarkViewModel by viewModels()
         setContent {
+
+            // Remember a SystemUiController
+            val systemUiController = rememberSystemUiController()
+            val useDarkIcons = !isSystemInDarkTheme()
+            DisposableEffect(systemUiController, useDarkIcons) {
+                systemUiController.setSystemBarsColor(
+                    color = Color.White,
+                    darkIcons = useDarkIcons
+                )
+                onDispose { }
+            }
             TasselTheme {
                 // A surface container using the 'background' color from the theme
                 val bottomNavButtonState: ToggleButtonState by bookmarkViewModel.bottomNavBarState.collectAsState()
