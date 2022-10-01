@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import xyz.graphitenerd.tassel.data.BookmarkRepository
-import xyz.graphitenerd.tassel.ui.Folder
+import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.ToggleButtonState
 import javax.inject.Inject
 
@@ -26,6 +26,7 @@ class BookmarkViewModel @Inject constructor(
     val bookmarks: Flow<List<Bookmark>> = bookmarkRepository.getAllBookmarks()
 
     val folderTree: Folder = Folder()
+    val folderTree: FolderTree = FolderTree()
 
     init {
         folderTree.buildFolderTree(this)

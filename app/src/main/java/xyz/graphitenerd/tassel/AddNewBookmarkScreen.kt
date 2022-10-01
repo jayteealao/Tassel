@@ -1,6 +1,7 @@
 package xyz.graphitenerd.tassel
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -11,6 +12,9 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.sebaslogen.resaca.hilt.hiltViewModelScoped
 import xyz.graphitenerd.tassel.model.*
 import xyz.graphitenerd.tassel.ui.BookmarkCard
-import xyz.graphitenerd.tassel.ui.Folder
+import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.SelectFolder
 
 @Composable
@@ -33,8 +37,13 @@ fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: Bookmar
     val formState = formChassis.state.collectAsState()
     val previewBookmark = addNewVM.bookmarkStateFlow.collectAsState()
 
+    val tree = remember {
+        bookmarkViewModel.folderTree
+    }
+
     LaunchedEffect(true) {
         formChassis.update(BookMarkForm::folder, Folder())
+        formChassis.update(BookMarkForm::folderTree, FolderTree())
     }
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -89,8 +98,10 @@ fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: Bookmar
             )
             SelectFolder(
                 selectedFolder = formState.value.folder.value ?: Folder(),
+                selectedFolder = formState.value.folderTree.value ?: FolderTree(),
                 onSelect = {
                     formChassis.update(BookMarkForm::folder, it.content)
+                    formChassis.update(BookMarkForm::folderTree, it.content)
                 },
                 tree = bookmarkViewModel.folderTree.buildBonsaiTree()
             )
