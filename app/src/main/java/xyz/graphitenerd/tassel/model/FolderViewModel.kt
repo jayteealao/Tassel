@@ -35,6 +35,7 @@ class FolderViewModel @Inject constructor(
             currentFolder.value = getFolderById(currentFolderId)
         }
         refreshFolders(1L)
+        refreshBookmarks(1)
     }
 
     fun getFoldersByParentId(id: Long? = null) = bookmarkRepository.getFoldersByParentId(id)
