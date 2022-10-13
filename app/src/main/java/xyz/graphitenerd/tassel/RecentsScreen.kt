@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -35,19 +36,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.saket.swipe.SwipeAction
-import me.saket.swipe.SwipeableActionsBox
+import xyz.graphitenerd.tassel.model.AuthViewModel
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkViewModel
 import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.*
+import xyz.graphitenerd.tassel.utils.CustomSwipeableActionsBox
+import xyz.graphitenerd.tassel.utils.SwipeAction
+
+//import xyz.graphitenerd.tassel.utils.oneTimeWorkRequest
+//import xyz.graphitenerd.tassel.utils.periodicWorkRequest
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun RecentScreen(
     bookmarkViewModel: BookmarkViewModel,
-    newBookmarkViewModel: NewBookmarkViewModel,
-    onNavigateToAddNew: () -> Unit = {}
     authViewModel: AuthViewModel,
 ) {
     val activityResultRegistry = LocalActivityResultRegistryOwner.current?.activityResultRegistry
@@ -160,6 +163,7 @@ private fun Contents(bookmarks: List<Bookmark>, deleteAction: (Bookmark) -> Unit
                 }
             )
             SwipeableActionsBox(
+            CustomSwipeableActionsBox(
                 modifier = Modifier,
                 endActions = listOf(delete),
                 swipeThreshold = 96.dp,
