@@ -3,6 +3,7 @@ package com.raqun.beaverlib.parser
 import com.raqun.beaverlib.model.MetaData
 import com.raqun.beaverlib.util.getHost
 import com.raqun.beaverlib.util.resolve
+import okhttp3.ConnectionSpec
 import okhttp3.Dispatcher
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -10,6 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.util.Arrays
 import java.util.concurrent.Executors
 
 class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
@@ -20,6 +22,7 @@ class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
         .followRedirects(true)
         .followSslRedirects(true)
         .dispatcher(Dispatcher(Executors.newFixedThreadPool(1)))
+        .connectionSpecs(Arrays.asList(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
         .build()
 
 //    check if its a google url that can be rewritten
@@ -55,8 +58,8 @@ class DefaultMetaDataParser(private val timeout: Int = TIMEOUT_INMILIS) :
             val request = Request.Builder()
                 .url(url).build()
             val doc: Document = Jsoup.parse(
-                okhttpClient.newCall(request).execute().body?.string()
-            )
+                    okhttpClient.newCall(request).execute().body?.string()
+                )
 //            val doc: Document = Jsoup.connect(url)
 //                .timeout(timeout)
 //                .get()
