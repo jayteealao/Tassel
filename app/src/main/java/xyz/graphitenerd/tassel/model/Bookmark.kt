@@ -38,7 +38,9 @@ data class Bookmark(
     var favIcon: String? = null,
     var folderId: Long? = null,
     @ColumnInfo(name = "creation_date")
-    var creationDate: Long = System.currentTimeMillis()
+    var creationDate: Long = System.currentTimeMillis(),
+    @ColumnInfo(defaultValue = true.toString())
+    var synced: Boolean = false
 ) : Parcelable, DbEntity, BookmarkMarker
 
 object EmptyBookmark : BookmarkMarker

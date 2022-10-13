@@ -5,6 +5,11 @@ plugins {
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.7.10'
+    id 'com.google.gms.google-services'
+    // Add the Crashlytics Gradle plugin
+    id 'com.google.firebase.crashlytics'
+    // Add the Performance Monitoring Gradle plugin
+    id 'com.google.firebase.firebase-perf'
 }
 
 android {
@@ -92,10 +97,15 @@ dependencies {
     implementation "androidx.room:room-paging:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     implementation 'com.github.sebaslogen:resaca:2.2.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
-    implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
-    kapt "androidx.room:room-compiler:$room_version"
+
+//    firebase
+    implementation platform('com.google.firebase:firebase-bom:30.4.1')
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.firebaseui:firebase-ui-auth:7.2.0'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-perf'
 
     implementation("br.com.devsrsouza.compose.icons.android:font-awesome:1.0.0")
 //    implementation "com.mikepenz:iconics-core:5.3.4"
@@ -104,11 +114,6 @@ dependencies {
 //    implementation "com.mikepenz:iconics-compose:5.3.4"
     implementation 'com.chimbori.crux:crux:3.0.1'
 
-    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
-    implementation "com.google.dagger:hilt-android:2.43.1"
-    kapt "com.google.dagger:hilt-compiler:2.43.1"
-    kapt 'androidx.hilt:hilt-compiler:1.0.0'
-    implementation 'androidx.hilt:hilt-work:1.0.0'
 
     def paging_version = "3.1.1"
 
