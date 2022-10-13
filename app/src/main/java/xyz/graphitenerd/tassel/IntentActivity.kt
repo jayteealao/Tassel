@@ -16,10 +16,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Card
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -31,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
@@ -39,6 +43,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.raqun.beaverlib.Beaver
@@ -53,6 +58,7 @@ import xyz.graphitenerd.tassel.model.*
 import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
+@ExperimentalMaterialApi
 @AndroidEntryPoint
 class IntentActivity : ComponentActivity() {
     @OptIn(
@@ -62,8 +68,8 @@ class IntentActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setLayout(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
         )
         if (!Beaver.isInitialized()) {
             Beaver.build(this)
@@ -79,6 +85,7 @@ class IntentActivity : ComponentActivity() {
                 mutableStateOf(true)
             }
             TasselTheme {
+                val scope = rememberCoroutineScope()
                 val closeDialog by remember { mutableStateOf(true) }
                 // A surface container using the 'background' color from the theme
                 val uiState by VM.uiState.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
@@ -91,22 +98,33 @@ class IntentActivity : ComponentActivity() {
                     addVM.previewBookmarkForm()
                     addVM.saveBookmarkForm()
                 }
-                rememberCoroutineScope().launch {
+                scope.launch {
                     delay(10000)
                     finish()
                 }
                 Surface(
                     modifier = Modifier
-                        .wrapContentSize()
-                        .background(Color.Transparent)
-                        .clickable { show = false },
-                    color = MaterialTheme.colors.background
+//                        .wrapContentSize()
+                        .fillMaxSize()
+                        .clickable { },
+//                    onClick = { scope.launch { finish() } },
+//                    contentAlignment = Alignment.Center
+                    color = Color.Transparent
 
                 ) {
                     if (show) {
 
                         Dialog(
-                            onDismissRequest = { /*TODO*/ }
+                            onDismissRequest = {
+                                scope.launch {
+                                delay(1000)
+                                    finish()
+                                }
+                            },
+                            properties = DialogProperties(
+                                dismissOnBackPress = true,
+                                dismissOnClickOutside = true
+                            )
                         ) {
 
                             Card(
