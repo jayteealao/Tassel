@@ -1,5 +1,6 @@
 package xyz.graphitenerd.tassel
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column

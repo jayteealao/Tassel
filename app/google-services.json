@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "211675517138",
+    "project_id": "tassel-d3486",
+    "storage_bucket": "tassel-d3486.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:211675517138:android:cbc4ff7a1334efeb5e1d0b",
+        "android_client_info": {
+          "package_name": "xyz.graphitenerd.tassel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "211675517138-3a2m3nh2sop3jjrptkdlnme2pak5a9pi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "xyz.graphitenerd.tassel",
+            "certificate_hash": "c3caaa505ca87460b43a1039337149397ca8d581"
+          }
+        },
+        {
+          "client_id": "211675517138-d6824pjjab5tkg5vg0s55vtoad1q0qgf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCT3FSDwBzgDbxlrpP8V4PQ4z3kzXdGado"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "211675517138-d6824pjjab5tkg5vg0s55vtoad1q0qgf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

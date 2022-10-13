@@ -1,29 +1,19 @@
 package xyz.graphitenerd.tassel.model
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.data.Repository
-import xyz.graphitenerd.tassel.data.MetadataToBookmarkMapper
 import xyz.graphitenerd.tassel.model.service.AccountService
 import xyz.graphitenerd.tassel.model.service.StorageService
 import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.ToggleButtonState
-import xyz.graphitenerd.tassel.utils.BookmarkObject
-import xyz.graphitenerd.tassel.utils.parse
-import xyz.graphitenerd.tassel.utils.retreiveBookmarks
-import xyz.graphitenerd.tassel.utils.retreiveFolders
 import javax.inject.Inject
-import kotlin.properties.Delegates
 
 @HiltViewModel
 class BookmarkViewModel @Inject constructor(

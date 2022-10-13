@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                     AnimatedVisibility(
                         visible = navController
                             .currentBackStackEntryAsState()
-                            .value?.destination?.route != Screens.ADDNEW.name
+                            .value?.destination?.route?.startsWith(Screens.ADDNEW.name)?.not() ?: false
                     ) {
                         Box(
                             modifier = Modifier

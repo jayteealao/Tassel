@@ -59,3 +59,18 @@
 #-keepnames class <1>$$serializer { # -keepnames suffices; class is kept when serializer() is kept.
 #    static <1>$$serializer INSTANCE;
 #}
+
+-dontwarn rx.**
+
+-dontwarn okio.**
+
+-dontwarn com.squareup.okhttp.**
+-keep class com.squareup.okhttp.** { *; }
+-keep interface com.squareup.okhttp.** { *; }
+
+-keepattributes Signature
+-keepattributes *Annotation*
+
+#// You can specify any path and filename.
+-printconfiguration ./tmp/full-r8-config.txt
+-printusage ./tmp/usage.txt

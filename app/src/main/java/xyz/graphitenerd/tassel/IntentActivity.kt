@@ -75,7 +75,6 @@ class IntentActivity : ComponentActivity() {
             Beaver.build(this)
         }
         Log.e("tassel", "beaver is initialized : ${Beaver.isInitialized()}")
-        val VM: UIViewModel by viewModels()
         val addVM: NewBookmarkViewModel by viewModels()
         val data: Uri? = intent?.data ?: Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT))
         Log.d("received data", "$data")
@@ -88,8 +87,8 @@ class IntentActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
                 val closeDialog by remember { mutableStateOf(true) }
                 // A surface container using the 'background' color from the theme
-                val uiState by VM.uiState.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
-                val formState = formChassis.state.collectAsState()
+//                val uiState by VM.uiState.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+//                val formState = formChassis.state.collectAsState()
                 val previewBookmark = addVM.bookmarkStateFlow.collectAsState()
                 LaunchedEffect(key1 = data.toString()) {
                     Log.d("received data", "$data")

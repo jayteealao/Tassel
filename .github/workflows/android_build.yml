@@ -9,20 +9,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
+#      - uses: actions/cache@v2
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}-${{ hashFiles('**/buildSrc/**/*.kt') }}
 
       - name: Set Up JDK
         uses: actions/setup-java@v1
         with:
           java-version: 1.11
 
+      - name: Restore signingkey.jks
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > ~/work/Tassel/Tassel/tasselsigningkey.jks
+          pwd ~/
+          ls ~/
+        
+
+      - name: Restore gradle.properties
+        run: |
+          mkdir -p ~/.gradle/
+          echo "KEYSTORE_FILE=./../tasselsigningkey.jks" >> ~/.gradle/gradle.properties
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> ~/.gradle/gradle.properties
+          echo "SIGNING_KEY_ALIAS=${{ secrets.SIGNING_KEY_ALIAS }}" >> ~/.gradle/gradle.properties
+          echo "SIGNING_KEY_PASSWORD=${{ secrets.SIGNING_KEY_PASSWORD }}" >> ~/.gradle/gradle.properties
+        shell: bash
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+        
       - name: Build Project
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace --scan
 
       - name: Run unit tests
         run: ./gradlew test --stacktrace
