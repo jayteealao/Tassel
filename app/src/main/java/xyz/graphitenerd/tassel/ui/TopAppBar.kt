@@ -23,7 +23,8 @@ import xyz.graphitenerd.tassel.R
 @Composable
 fun HomeAppBar(
     actionIcon: Painter = painterResource(id = R.drawable.tassel_app_icon),
-    onClickActionButton: () -> Unit
+    onClickMenuButton: () -> Unit = {},
+    onClickActionButton: () -> Unit,
 ) {
 
     TopAppBar(
@@ -37,7 +38,7 @@ fun HomeAppBar(
                 .align(Alignment.CenterVertically),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = onClickMenuButton) {
                 Icon(
                     imageVector = Icons.Default.Menu,
                     contentDescription = "",

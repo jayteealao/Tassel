@@ -12,14 +12,19 @@ import io.github.boguszpawlowski.chassis.reduce
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import xyz.graphitenerd.tassel.data.BookmarkRepository
+import xyz.graphitenerd.tassel.data.Repository
 import xyz.graphitenerd.tassel.data.MetadataToBookmarkMapper
+import xyz.graphitenerd.tassel.ui.FolderTree
 import javax.inject.Inject
 
 @HiltViewModel
-class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: BookmarkRepository) : ViewModel() {
+class NewBookmarkViewModel @Inject constructor(
+    private val repository: Repository,
+) : ViewModel() {
 
+    private var isEdit = false
     private val metadataToBookmarkMapper = MetadataToBookmarkMapper()
 
     var _bookmarkStateFlow: MutableStateFlow<BookmarkMarker> = MutableStateFlow(EmptyBookmark)
@@ -45,6 +50,18 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
     }
 
     fun previewBookmarkForm() {
+        if ( isEdit ) {
+            var bookmark = _bookmarkStateFlow.value as Bookmark
+            with(bookmarkForm()) {
+                bookmark = bookmark.copy(
+                    title = title(),
+                )
+                Log.d("edit", "preview edit: $bookmark")
+                _bookmarkStateFlow.value = bookmark
+
+            }
+            return
+        }
         with(bookmarkForm()) {
             viewModelScope.launch(Dispatchers.IO) {
                 if (Beaver.isInitialized() and (address() != null)) {
@@ -65,9 +82,17 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
     }
 
     fun saveBookmarkForm() {
-        if (_bookmarkStateFlow.value != EmptyBookmark) {
+        if ( isEdit ) {
             viewModelScope.launch(Dispatchers.IO) {
-                bookmarkRepository.addBookmark(bookmarkStateFlow.value as Bookmark)
+                Log.d("edit", "saving edit: ${bookmarkStateFlow.value as Bookmark}")
+                var bookmark = bookmarkStateFlow.value as Bookmark
+                with(bookmarkForm()) {
+                    bookmark = bookmark.copy(
+                        title = title(),
+                        folderId = folderTree().folderId
+                        )
+                }
+                repository.saveAndSyncBookmark(bookmark)
             }
         } else {
             with(bookmarkForm()) {
@@ -77,7 +102,7 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
                         val data = Beaver.load(address()).await()
                         Log.e("tassel", "metadata: $data")
                         if (data != null) {
-                            bookmarkRepository.addBookmark(
+                            repository.addBookmark(
                                 metadataToBookmarkMapper.map(data).apply {
                                     folderId = folderTree().folderId
                                 }
@@ -89,7 +114,29 @@ class NewBookmarkViewModel @Inject constructor(private val bookmarkRepository: B
         }
     }
 
+    fun loadBookmark(id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            Log.d("edit", "$id")
+            val _bookmark= repository.getBookmarkById(id)
+            Log.d("edit", "$_bookmark")
+            val _folder = repository.getFolderById(_bookmark.folderId!!)
+            _bookmarkStateFlow.value = _bookmark
+            bookmarkForm.update(BookMarkForm::title, _bookmark.title)
+            bookmarkForm.update(BookMarkForm::address, _bookmark.rawUrl)
+            bookmarkForm.update(
+                BookMarkForm::folderTree,
+                FolderTree(
+                    folderName = _folder.name,
+                    folderId = _folder.id,
+                )
+            )
+        }
+        isEdit = true
+    }
+
     fun resetForm() {
         bookmarkForm.reset()
+        _bookmarkStateFlow.value = EmptyBookmark
+        isEdit = false
     }
 }

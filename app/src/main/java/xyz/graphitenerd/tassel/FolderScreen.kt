@@ -21,6 +21,8 @@ import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,23 +40,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.FolderPlus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.saket.swipe.SwipeAction
-import me.saket.swipe.SwipeableActionsBox
 import xyz.graphitenerd.tassel.model.BookmarkFolder
 import xyz.graphitenerd.tassel.model.FolderViewModel
 import xyz.graphitenerd.tassel.ui.BookmarkCard
 import xyz.graphitenerd.tassel.ui.FolderCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
+import xyz.graphitenerd.tassel.utils.CustomSwipeableActionsBox
+import xyz.graphitenerd.tassel.utils.SwipeAction
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun FolderScreen(VM: FolderViewModel) {
+fun FolderScreen(
+    VM: FolderViewModel,
+    navController: NavController
+) {
 
     val folders by VM.folders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
     val bookmarks by VM.bookmarks.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle, initialValue = emptyList())
@@ -141,7 +147,7 @@ fun FolderScreen(VM: FolderViewModel) {
                                 onClick = {
                                     if (newFolderName.isNotBlank()) {
                                         scope.launch(Dispatchers.IO) {
-                                            VM.insertFolder(
+                                            VM.saveAndSync(
                                                 BookmarkFolder(
                                                     name = newFolderName,
                                                     parentId = VM.currentFolderId
@@ -180,6 +186,16 @@ fun FolderScreen(VM: FolderViewModel) {
 //                    color = Color.Black
 //                )
 
+                val edit = SwipeAction(
+                    icon = rememberVectorPainter(Icons.Default.Edit),
+                    background = Color(0xFF7CB9E8),
+                    onSwipe = {
+                        Log.d("edit", "${Screens.ADDNEW.name}?id=${it.id}")
+
+                        navController.navigate("${Screens.ADDNEW.name}?id=${it.id}")
+                    }
+                )
+
                 val delete = SwipeAction(
                     icon = painterResource(id = R.drawable.icoutlinedelete),
                     background = Color.Red,
@@ -189,8 +205,9 @@ fun FolderScreen(VM: FolderViewModel) {
                         }
                     }
                 )
-                SwipeableActionsBox(
+                CustomSwipeableActionsBox(
                     modifier = Modifier,
+                    startActions = listOf(edit),
                     endActions = listOf(delete),
                     swipeThreshold = 96.dp,
                     backgroundUntilSwipeThreshold = Color.White

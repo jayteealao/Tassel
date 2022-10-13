@@ -10,6 +10,8 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarResult
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +41,6 @@ import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.model.AuthViewModel
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkViewModel
-import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.*
 import xyz.graphitenerd.tassel.utils.CustomSwipeableActionsBox
 import xyz.graphitenerd.tassel.utils.SwipeAction
@@ -52,6 +53,8 @@ import xyz.graphitenerd.tassel.utils.SwipeAction
 fun RecentScreen(
     bookmarkViewModel: BookmarkViewModel,
     authViewModel: AuthViewModel,
+    navController: NavController,
+    onNavigateToAddNew: () -> Unit = {},
 ) {
     val activityResultRegistry = LocalActivityResultRegistryOwner.current?.activityResultRegistry
     val scaffoldState = rememberScaffoldState()
@@ -108,18 +111,25 @@ fun RecentScreen(
         }
         RecentScreenContent(
             bookmarksFlow = bookmarkViewModel.bookmarks,
-            deleteAction = { bookmarkViewModel.deleteBookmark(it) }
+            navController = navController,
+            deleteAction = { bookmarkViewModel.deleteBookmark(it) },
+            count
         )
     }
 }
 
 @Composable
-fun RecentScreenContent(bookmarksFlow: Flow<List<Bookmark>>, deleteAction: (Bookmark) -> Unit = {}) {
+fun RecentScreenContent(
+    bookmarksFlow: Flow<List<Bookmark>>,
+    navController: NavController,
+    deleteAction: (Bookmark) -> Unit = {},
+    bookmarkCount: Int = 0
+) {
     val bookmarks: State<List<Bookmark>> = bookmarksFlow.collectAsState(emptyList())
-    if (bookmarks.value.isEmpty()) {
+    if (bookmarkCount == 0) {
         EmptyBookmarkFolder()
     } else {
-        Contents(bookmarks.value, deleteAction)
+        Contents(bookmarks.value, navController, deleteAction)
     }
 }
 
@@ -128,12 +138,16 @@ fun RecentScreenContent(uiState: List<Bookmark>) {
     if (uiState.isEmpty()) {
         EmptyBookmarkFolder()
     } else {
-        Contents(uiState)
+//        Contents(uiState)
     }
 }
 
 @Composable
-private fun Contents(bookmarks: List<Bookmark>, deleteAction: (Bookmark) -> Unit = {}) {
+private fun Contents(
+    bookmarks: List<Bookmark>,
+    navController: NavController,
+    deleteAction: (Bookmark) -> Unit = {},
+) {
     val scope = rememberCoroutineScope()
     LazyColumn(
         contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 78.dp)
@@ -162,9 +176,20 @@ private fun Contents(bookmarks: List<Bookmark>, deleteAction: (Bookmark) -> Unit
                     }
                 }
             )
-            SwipeableActionsBox(
+
+            val edit = SwipeAction(
+                icon = rememberVectorPainter(Icons.Default.Edit),
+                background = Color(0xFF7CB9E8),
+                onSwipe = {
+                    Log.d("edit", "${Screens.ADDNEW.name}?id=${bookmark.id}")
+
+                    navController.navigate("${Screens.ADDNEW.name}?id=${bookmark.id}")
+                }
+            )
+
             CustomSwipeableActionsBox(
                 modifier = Modifier,
+                startActions = listOf(edit),
                 endActions = listOf(delete),
                 swipeThreshold = 96.dp,
                 backgroundUntilSwipeThreshold = Color.White

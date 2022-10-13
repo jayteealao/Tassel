@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,7 +31,11 @@ import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.SelectFolder
 
 @Composable
-fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: BookmarkViewModel) {
+fun AddBookmarkScreen(
+    addNewVM: NewBookmarkViewModel,
+    bookmarkViewModel: BookmarkViewModel,
+    bookmarkId: Long? = 0
+) {
 
     val formChassis = addNewVM.bookmarkForm
     val formState = formChassis.state.collectAsState()
@@ -43,6 +48,14 @@ fun AddBookmarkScreen(addNewVM: NewBookmarkViewModel, bookmarkViewModel: Bookmar
     LaunchedEffect(true) {
         formChassis.update(BookMarkForm::folderTree, FolderTree())
     }
+
+    DisposableEffect(bookmarkId) {
+        if (bookmarkId != 0L) {
+            addNewVM.loadBookmark(bookmarkId!!)
+        }
+        onDispose { addNewVM.resetForm() }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = {

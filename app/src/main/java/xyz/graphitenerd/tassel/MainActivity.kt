@@ -1,49 +1,47 @@
 package xyz.graphitenerd.tassel
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.graphitenerd.tassel.model.Bookmark
-import xyz.graphitenerd.tassel.model.BookmarkViewModel
 import xyz.graphitenerd.tassel.ui.BottomNavButton
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterialApi::class)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (!Beaver.isInitialized()) {
             Beaver.build(this)
         }
-        Log.e("tassel", "beaver is initialized : ${Beaver.isInitialized()}")
 
-        val bookmarkViewModel: BookmarkViewModel by viewModels()
         setContent {
 
             // Remember a SystemUiController
@@ -76,21 +74,35 @@ class MainActivity : ComponentActivity() {
                         composable(Screens.RECENTS.name) {
                             RecentScreen(
                                 bookmarkViewModel = hiltViewModel(),
-                                newBookmarkViewModel = hiltViewModel(),
+                                authViewModel = hiltViewModel(),
+                                navController = navController,
                                 onNavigateToAddNew = {
                                     navController.navigate(Screens.ADDNEW.name)
 //                                    bookmarkViewModel.loadJsonBookmarks()
                                 }
                             )
                         }
-                        composable(Screens.ADDNEW.name) {
+                        composable(
+                            "${Screens.ADDNEW.name}?id={id}",
+                            arguments = listOf(
+                                navArgument("id") {
+//                                    nullable = true
+                                    type = NavType.StringType
+                                    defaultValue = "0"
+                                }
+                            )
+                        ) { backStackEntry ->
                             AddBookmarkScreen(
                                 addNewVM = hiltViewModel(),
-                                bookmarkViewModel = hiltViewModel()
+                                bookmarkViewModel = hiltViewModel(),
+                                backStackEntry.arguments?.getString("id")?.toLong()
                             )
                         }
                         composable(Screens.FOLDERS.name) {
-                            FolderScreen(VM = hiltViewModel())
+                            FolderScreen(
+                                VM = hiltViewModel(),
+                                navController = navController
+                            )
                         }
                     }
                     AnimatedVisibility(
