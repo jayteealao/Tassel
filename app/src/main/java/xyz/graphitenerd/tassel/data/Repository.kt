@@ -1,7 +1,6 @@
 package xyz.graphitenerd.tassel.data
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,36 +21,36 @@ class Repository @Inject constructor(
     private val storageService: StorageService,
     private val accountService: AccountService,
     private val scope: CoroutineScope
-) {
-    fun getAllBookmarks(): Flow<List<Bookmark>> {
+) : IRepository {
+    override fun getAllBookmarks(): Flow<List<Bookmark>> {
         return bookmarkDao.getAllBookmarks()
     }
 
-    fun countBookmarks() = bookmarkDao.countBookmarks()
+    override fun countBookmarks() = bookmarkDao.countBookmarks()
 
-    fun addBookmark(bookmark: Bookmark) = bookmarkDao.addBookmark(bookmark)
+    override fun addBookmark(bookmark: Bookmark) = bookmarkDao.addBookmark(bookmark)
 
-    fun getRecentBookmarks() = bookmarkDao.getRecentBookmarks()
+    override fun getRecentBookmarks() = bookmarkDao.getRecentBookmarks()
 
-    fun getBookmarkById(id: Long) = bookmarkDao.getBookmarkById(id)
+    override fun getBookmarkById(id: Long) = bookmarkDao.getBookmarkById(id)
 
 //    fun deleteBookmarkById(id: Long) = bookmarkDao.deleteBookmarkById(id)
 
-    fun getLastSavedBookmark(time: Long) = bookmarkDao.getLastSavedBookmark(time)
+    override fun getLastSavedBookmark(time: Long) = bookmarkDao.getLastSavedBookmark(time)
 
-    fun deleteBookmark(bookmark: Bookmark) = bookmarkDao.deleteBookmark(bookmark)
+    override fun deleteBookmark(bookmark: Bookmark) = bookmarkDao.deleteBookmark(bookmark)
 
-    fun getFolderById(id: Long) = folderDao.getFolderById(id)
+    override fun getFolderById(id: Long) = folderDao.getFolderById(id)
 
-    fun getFoldersByParentId(id: Long? = null) = folderDao.getFolderChildren(id)
+    override fun getFoldersByParentId(id: Long?) = folderDao.getFolderChildren(id)
 
-    fun getFolderByName(name: String) = folderDao.getFolderByName(name)
+    override fun getFolderByName(name: String) = folderDao.getFolderByName(name)
 
-    fun getBookmarksByFolders(id: Long) = bookmarkDao.getBookmarksByFolder(id)
+    override fun getBookmarksByFolders(id: Long) = bookmarkDao.getBookmarksByFolder(id)
 
-    fun insertFolder(folder: BookmarkFolder) = folderDao.insertFolder(folder)
+    override fun insertFolder(folder: BookmarkFolder) = folderDao.insertFolder(folder)
 
-    fun getFolders() = folderDao.getFolders()
+    override fun getFolders() = folderDao.getFolders()
 
     init {
         if (accountService.hasUser() and !storageService.isUserSet()) {
@@ -59,7 +58,7 @@ class Repository @Inject constructor(
             storageService.setUserId(accountService.getUserId())
         }
     }
-    fun syncFoldersToCloud() {
+    override fun syncFoldersToCloud() {
         if (!accountService.hasUser()) return
         scope.launch(Dispatchers.IO) {
             val folders = getFolders()
@@ -67,7 +66,7 @@ class Repository @Inject constructor(
         }
     }
 
-    fun syncBookmarksToCloud() {
+    override fun syncBookmarksToCloud() {
         if (!accountService.hasUser()) { return }
         Log.e("sync", "userid: ${accountService.getUserId()}")
 
@@ -84,7 +83,7 @@ class Repository @Inject constructor(
         }
     }
 
-    suspend fun saveBookmarkToCloud(bookmark: Bookmark) = storageService
+    override suspend fun saveBookmarkToCloud(bookmark: Bookmark) = storageService
         .saveBookmark(bookmark.copy(synced = true)) {
             Log.d("sync-unsynced", "synced $it")
             scope.launch(Dispatchers.IO) {
@@ -94,17 +93,17 @@ class Repository @Inject constructor(
             }
         }
 
-    suspend fun saveAndSyncBookmark(bookmark: Bookmark) {
+    override suspend fun saveAndSyncBookmark(bookmark: Bookmark) {
         bookmarkDao.addBookmark(bookmark)
         saveBookmarkToCloud(bookmark)
     }
 
-    suspend fun saveAndSyncFolder(folder: BookmarkFolder) {
+    override suspend fun saveAndSyncFolder(folder: BookmarkFolder) {
         insertFolder(folder)
         storageService.saveFolder(folder)
     }
 
-    suspend fun syncUnsyncedBookmarks() {
+    override suspend fun syncUnsyncedBookmarks() {
         delay(1000)
         Log.d("sync-unsynced", "syncing")
         bookmarkDao.getUnsyncedBookmarks().forEach {

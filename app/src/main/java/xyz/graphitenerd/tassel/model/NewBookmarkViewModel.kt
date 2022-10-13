@@ -9,19 +9,19 @@ import io.github.boguszpawlowski.chassis.chassis
 import io.github.boguszpawlowski.chassis.field
 import io.github.boguszpawlowski.chassis.longerThan
 import io.github.boguszpawlowski.chassis.reduce
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import xyz.graphitenerd.tassel.data.Repository
+import xyz.graphitenerd.tassel.data.IRepository
 import xyz.graphitenerd.tassel.data.MetadataToBookmarkMapper
 import xyz.graphitenerd.tassel.ui.FolderTree
 import javax.inject.Inject
 
 @HiltViewModel
 class NewBookmarkViewModel @Inject constructor(
-    private val repository: Repository,
+    private val repository: IRepository,
+    private val coroutineDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private var isEdit = false
@@ -56,16 +56,16 @@ class NewBookmarkViewModel @Inject constructor(
                 bookmark = bookmark.copy(
                     title = title(),
                 )
-                Log.d("edit", "preview edit: $bookmark")
+//                Log.d("edit", "preview edit: $bookmark")
                 _bookmarkStateFlow.value = bookmark
 
             }
             return
         }
         with(bookmarkForm()) {
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(coroutineDispatcher) {
                 if (Beaver.isInitialized() and (address() != null)) {
-                    Log.e("tassel", "on save form address is ${address()}")
+//                    Log.e("tassel", "on save form address is ${address()}")
                     val data = Beaver.load(address()).await()
 //                    Log.e("tassel", "metadata: ${data.toString()}")
                     if (data != null) {
@@ -83,8 +83,8 @@ class NewBookmarkViewModel @Inject constructor(
 
     fun saveBookmarkForm() {
         if ( isEdit ) {
-            viewModelScope.launch(Dispatchers.IO) {
-                Log.d("edit", "saving edit: ${bookmarkStateFlow.value as Bookmark}")
+            viewModelScope.launch(coroutineDispatcher) {
+//                Log.d("edit", "saving edit: ${bookmarkStateFlow.value as Bookmark}")
                 var bookmark = bookmarkStateFlow.value as Bookmark
                 with(bookmarkForm()) {
                     bookmark = bookmark.copy(
@@ -96,13 +96,13 @@ class NewBookmarkViewModel @Inject constructor(
             }
         } else {
             with(bookmarkForm()) {
-                Log.e("tassel", "on save form address is ${address()}")
-                viewModelScope.launch(Dispatchers.IO) {
+//                Log.e("tassel", "on save form address is ${address()}")
+                viewModelScope.launch(coroutineDispatcher) {
                     if (Beaver.isInitialized()) {
                         val data = Beaver.load(address()).await()
                         Log.e("tassel", "metadata: $data")
                         if (data != null) {
-                            repository.addBookmark(
+                            repository.saveAndSyncBookmark(
                                 metadataToBookmarkMapper.map(data).apply {
                                     folderId = folderTree().folderId
                                 }
@@ -115,10 +115,8 @@ class NewBookmarkViewModel @Inject constructor(
     }
 
     fun loadBookmark(id: Long) {
-        viewModelScope.launch(Dispatchers.IO) {
-            Log.d("edit", "$id")
+        viewModelScope.launch(coroutineDispatcher) {
             val _bookmark= repository.getBookmarkById(id)
-            Log.d("edit", "$_bookmark")
             val _folder = repository.getFolderById(_bookmark.folderId!!)
             _bookmarkStateFlow.value = _bookmark
             bookmarkForm.update(BookMarkForm::title, _bookmark.title)

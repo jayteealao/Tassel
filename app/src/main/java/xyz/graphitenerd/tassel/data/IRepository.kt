@@ -1,0 +1,27 @@
+package xyz.graphitenerd.tassel.data
+
+import kotlinx.coroutines.flow.Flow
+import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.BookmarkFolder
+
+interface IRepository {
+    fun getAllBookmarks(): Flow<List<Bookmark>>
+    fun countBookmarks(): Flow<Int>
+    fun addBookmark(bookmark: Bookmark): Long
+    fun getRecentBookmarks(): Flow<List<Bookmark>>
+    fun getBookmarkById(id: Long): Bookmark
+    fun getLastSavedBookmark(time: Long): List<Bookmark>
+    fun deleteBookmark(bookmark: Bookmark)
+    fun getFolderById(id: Long): BookmarkFolder
+    fun getFoldersByParentId(id: Long? = null): List<BookmarkFolder>
+    fun getFolderByName(name: String): BookmarkFolder
+    fun getBookmarksByFolders(id: Long): Flow<List<Bookmark>>
+    fun insertFolder(folder: BookmarkFolder)
+    fun getFolders(): List<BookmarkFolder>
+    fun syncFoldersToCloud()
+    fun syncBookmarksToCloud()
+    suspend fun saveBookmarkToCloud(bookmark: Bookmark)
+    suspend fun saveAndSyncBookmark(bookmark: Bookmark)
+    suspend fun saveAndSyncFolder(folder: BookmarkFolder)
+    suspend fun syncUnsyncedBookmarks()
+}

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,7 +13,8 @@ import dagger.hilt.components.SingletonComponent
 import xyz.graphitenerd.tassel.data.AppDatabase
 import xyz.graphitenerd.tassel.data.BookmarkDao
 import xyz.graphitenerd.tassel.data.FolderDao
-// import xyz.graphitenerd.tassel.utils.myWorkRequest
+import xyz.graphitenerd.tassel.data.IRepository
+import xyz.graphitenerd.tassel.data.Repository
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -42,4 +44,14 @@ class DatabaseModule {
 
     @Provides
     fun provideFolderDao(appDatabase: AppDatabase): FolderDao = appDatabase.folderDao()
+
+//    @Binds
+//    fun provideAccountService(impl: Repository): IRepository
+}
+
+@InstallIn(SingletonComponent::class)
+@Module
+abstract class DatabaseRepoModule {
+    @Binds
+    abstract fun provideRepository(impl: Repository): IRepository
 }
