@@ -53,10 +53,11 @@ fun BookmarkCard(bookmark: Bookmark, modifier: Modifier = Modifier) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(bookmark.imageUrl)
-                        .size(60)
+                        .size(600)
                         .crossfade(true)
                         .build(),
                     placeholder = painterResource(R.drawable.placeholder),
+                    fallback = painterResource(R.drawable.placeholder),
                     contentDescription = "favicon",
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.clip(RectangleShape).size(72.dp).padding(4.dp)
@@ -87,6 +88,7 @@ fun BookmarkCard(bookmark: Bookmark, modifier: Modifier = Modifier) {
                                 .crossfade(true)
                                 .build(),
                             placeholder = painterResource(R.drawable.placeholder),
+                            fallback = painterResource(R.drawable.placeholder),
                             contentDescription = "favicon",
                             contentScale = ContentScale.Fit,
                             modifier = Modifier.clip(RectangleShape).size(24.dp)
