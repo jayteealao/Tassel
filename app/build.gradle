@@ -17,10 +17,10 @@ plugins {
 android {
     signingConfigs {
         release {
-            storeFile file('C:\\Users\\HP\\.android\\tasselsigningkey.jks')
-            storePassword 'daddyy'
-            keyAlias 'key0'
-            keyPassword 'daddyy'
+            storeFile file(project.property("KEYSTORE_FILE").toString())
+            storePassword project.property("KEYSTORE_PASSWORD").toString()
+            keyAlias project.property("SIGNING_KEY_ALIAS").toString()
+            keyPassword project.property("SIGNING_KEY_PASSWORD").toString()
         }
     }
     compileSdk 33
