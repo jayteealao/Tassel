@@ -4,16 +4,20 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkFolder
 
 @Dao
 interface FolderDao {
-    @Insert
+    @Upsert
     fun insertFolder(folder: BookmarkFolder)
 
     @Delete
     fun deleteFolder(folder: BookmarkFolder)
+
+    @Query("SELECT * FROM bookmark_folder")
+    fun getFolders(): List<BookmarkFolder>
 
     @Query("SELECT * FROM bookmark_folder WHERE parentId = :id")
     fun getFolderChildren(id: Long?): List<BookmarkFolder>
