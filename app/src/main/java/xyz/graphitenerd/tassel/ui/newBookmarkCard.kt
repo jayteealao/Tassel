@@ -143,3 +143,9 @@ fun prevAB() {
 fun prevBTF() {
     BetterTextField()
 }
+
+@Preview
+@Composable
+fun prevOTF() {
+    OutlinedTextFieldWithLabel(value = "", onValueChange = {}, label = "")
+}
