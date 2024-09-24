@@ -40,9 +40,9 @@ enum class TagButtonParts {
 }
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun TB2(value: String, selected: Boolean = false, onSelected: (Boolean) -> Unit = {}, offset: Dp = 2.dp) {
+fun TB2(value: String, selected: Boolean = false, onSelected: (Boolean) -> Unit, offset: Dp = 2.dp) {
 
-    val offset = animateDpAsState(
+    val animatedOffset = animateDpAsState(
         targetValue = if (selected) offset + 2.dp else offset,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioHighBouncy,
@@ -81,10 +81,10 @@ fun TB2(value: String, selected: Boolean = false, onSelected: (Boolean) -> Unit 
         },
         modifier = Modifier
             .wrapContentSize()
-            .clickable { onSelected(selected) }
+            .clickable { onSelected(!selected) }
     ) { measurables, constraints ->
 
-        val offset = offset.value.roundToPx()
+        val offsetPx = animatedOffset.value.roundToPx()
 
         val textPlaceable = measurables.first {
                 measurable ->
@@ -96,8 +96,8 @@ fun TB2(value: String, selected: Boolean = false, onSelected: (Boolean) -> Unit 
             measurable.layoutId == TagButtonParts.SHADOW
         }.measure(Constraints.fixed(textPlaceable.width, textPlaceable.height))
 
-        layout(textPlaceable.width + offset, textPlaceable.height + offset) {
-            shadowPlaceable.place(offset, offset, 0f)
+        layout(textPlaceable.width + offsetPx, textPlaceable.height + offsetPx) {
+            shadowPlaceable.place(offsetPx, offsetPx, 0f)
             textPlaceable.place(0, 0, 1f)
         }
     }
@@ -113,3 +113,4 @@ fun previewTB2() {
 
     TB2(value = "CSS", selected = selected, onSelected = { selected = !it })
 }
+

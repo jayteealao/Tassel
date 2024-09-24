@@ -19,6 +19,7 @@ import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkMarker
 import xyz.graphitenerd.tassel.model.EmptyBookmark
 import xyz.graphitenerd.tassel.ui.FolderTree
+import xyz.graphitenerd.tassel.model.Tag
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,6 +50,12 @@ class NewBookmarkViewModel @Inject constructor(
                     copy(folderTree = it)
                 }
             }
+            ),
+            tags = field {
+                reduce {
+                    copy(tags = it)
+                }
+            }
         )
     }
 
@@ -58,6 +65,7 @@ class NewBookmarkViewModel @Inject constructor(
             with(bookmarkForm()) {
                 bookmark = bookmark.copy(
                     title = title(),
+                    tags = tags()
                 )
 //                Log.d("edit", "preview edit: $bookmark")
                 _bookmarkStateFlow.value = bookmark
@@ -108,6 +116,7 @@ class NewBookmarkViewModel @Inject constructor(
                             repository.saveAndSyncBookmark(
                                 metadataToBookmarkMapper.map(data).apply {
                                     folderId = folderTree().folderId
+                                    tags = tags()
                                 }
                             )
                         }
@@ -124,6 +133,7 @@ class NewBookmarkViewModel @Inject constructor(
             _bookmarkStateFlow.value = _bookmark
             bookmarkForm.update(BookMarkForm::title, _bookmark.title)
             bookmarkForm.update(BookMarkForm::address, _bookmark.rawUrl)
+            bookmarkForm.update(BookMarkForm::tags, _bookmark.tags)
             bookmarkForm.update(
                 BookMarkForm::folderTree,
                 FolderTree(
@@ -141,3 +151,4 @@ class NewBookmarkViewModel @Inject constructor(
         isEdit = false
     }
 }
+

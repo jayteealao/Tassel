@@ -8,6 +8,8 @@ import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.Tag
+import xyz.graphitenerd.tassel.model.BookmarkTagCrossRef
 
 @Dao
 interface BookmarkDao {
@@ -53,4 +55,20 @@ interface BookmarkDao {
 
     @Query("SELECT count(*) FROM bookmark")
     fun countBookmarks(): Flow<Int>
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertTag(tag: Tag): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertBookmarkTagCrossRef(crossRef: BookmarkTagCrossRef): Long
+
+    @Query("DELETE FROM BookmarkTagCrossRef WHERE bookmarkId = :bookmarkId AND tagId = :tagId")
+    fun deleteTagFromBookmark(bookmarkId: Long, tagId: Long)
+
+    @Query("""
+        SELECT * FROM bookmark 
+        INNER JOIN BookmarkTagCrossRef ON bookmark.id = BookmarkTagCrossRef.bookmarkId 
+        WHERE BookmarkTagCrossRef.tagId = :tagId
+    """)
+    fun getBookmarksByTag(tagId: Long): Flow<List<Bookmark>>
 }
+

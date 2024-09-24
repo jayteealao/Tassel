@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.Tag
 import xyz.graphitenerd.tassel.service.AccountService
 import xyz.graphitenerd.tassel.service.StorageService
 import xyz.graphitenerd.tassel.ui.FolderTree
@@ -27,7 +28,14 @@ class BookmarkViewModel @Inject constructor(
 
     var bookmarkCount = MutableStateFlow(0)
 
-    val bookmarks: Flow<List<Bookmark>> = bookmarkRepository.getRecentBookmarks()
+    private val selectedTag = MutableStateFlow<Tag?>(null)
+    val bookmarks: Flow<List<Bookmark>> = selectedTag.flatMapLatest { tag ->
+        if (tag == null) {
+            bookmarkRepository.getRecentBookmarks()
+        } else {
+            bookmarkRepository.getBookmarksByTag(tag.id)
+        }
+    }
 
     var deletedBookmark: MutableStateFlow<Bookmark?> = MutableStateFlow(null)
         private set
@@ -38,6 +46,14 @@ class BookmarkViewModel @Inject constructor(
         initializeBookmarkCount()
         initializeFolderTree()
         initializeUserStorage()
+    }
+
+    fun updateSelectedTag(tag: Tag?) {
+        selectedTag.value = tag
+    }
+
+    fun clearTagFilter() {
+        selectedTag.value = null
     }
 
     fun addBookmark(bookmark: Bookmark) {
@@ -82,3 +98,4 @@ class BookmarkViewModel @Inject constructor(
     }
 
 }
+

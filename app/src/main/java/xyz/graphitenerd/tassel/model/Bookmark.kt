@@ -30,9 +30,11 @@ data class Bookmark(
     var folderId: Long? = null,
     @ColumnInfo(name = "creation_date")
     var creationDate: Long = System.currentTimeMillis(),
+    var tags: List<Tag> = emptyList(),
     @ColumnInfo(defaultValue = true.toString())
     var synced: Boolean = false
 ) : DbEntity, BookmarkMarker
 
 object EmptyBookmark : BookmarkMarker
 sealed interface BookmarkMarker
+

@@ -6,7 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.boguszpawlowski.chassis.Chassis
-import xyz.graphitenerd.tassel.model.BookMarkForm
+import xyz.graphitenerd.tassel.model.*
 
 @Composable
 fun OutlinedTextFieldWithLabel(
@@ -55,7 +55,11 @@ fun Content(
     onTitleValueChange: (String) -> Unit = {},
     addressValue: String = "",
     onAddressValueChange: (String) -> Unit = {},
-    onAcceptButton: () -> Unit = {}
+    onAcceptButton: () -> Unit = {},
+    tags: List<Tag> = emptyList(),
+    onTagValueChange: (String) -> Unit = {},
+    onAddTag: () -> Unit = {},
+    onRemoveTag: (Tag) -> Unit = {}
 ) {
 
 //    TODO consider encapsulating parameters in a remember hook
@@ -71,6 +75,46 @@ fun Content(
             )
             Divider(color = Color.Black)
             Spacer(modifier = Modifier.height(20.dp))
+            OutlinedTextFieldWithLabel(
+                value = "",
+                onValueChange = onTagValueChange,
+                label = "Add Tag",
+            )
+            Button(
+                onClick = onAddTag,
+                modifier = Modifier.padding(top = 8.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.Gray,
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(16.dp, 0.dp)
+            ) {
+                Text(text = "Add Tag")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(text = "Tags:")
+            Column {
+                tags.forEach { tag ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        Text(text = tag.name, modifier = Modifier.weight(1f))
+                        Button(
+                            onClick = { onRemoveTag(tag) },
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.Red,
+                                contentColor = Color.White
+                            ),
+                            contentPadding = PaddingValues(8.dp, 0.dp)
+                        ) {
+                            Text(text = "Remove")
+                        }
+                    }
+                }
+            }
             OutlinedTextFieldWithLabel(
                 value = titleValue,
                 onValueChange = onTitleValueChange,
@@ -103,12 +147,26 @@ fun Content(
 fun AddBookmark(onAccept: () -> Unit, formState: Chassis<BookMarkForm>) {
 
     val bookmarkForm = formState.state.collectAsState()
+    var tagInput by remember { mutableStateOf("") }
+    val tags = bookmarkForm.value.tags.value ?: emptyList()
+
     Content(
         titleValue = bookmarkForm.value.title.value ?: "",
         onTitleValueChange = { formState.update(BookMarkForm::title, it) },
         addressValue = bookmarkForm.value.address.value ?: "",
         onAddressValueChange = { formState.update(BookMarkForm::address, it) },
-        onAcceptButton = onAccept
+        onAcceptButton = onAccept,
+        tags = tags,
+        onTagValueChange = { tagInput = it },
+        onAddTag = {
+            if (tagInput.isNotBlank()) {
+                formState.update(BookMarkForm::tags, tags + Tag(name = tagInput))
+                tagInput = ""
+            }
+        },
+        onRemoveTag = { tag ->
+            formState.update(BookMarkForm::tags, tags - tag)
+        }
     )
 }
 // TODO replace
@@ -149,3 +207,4 @@ fun prevBTF() {
 fun prevOTF() {
     OutlinedTextFieldWithLabel(value = "", onValueChange = {}, label = "")
 }
+
