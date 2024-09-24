@@ -15,3 +15,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+/app/release/output-metadata.json
+/app/tmp/usage.txt
+/app/src/main/assets/Bookmarks.json
+/app/release/app-release.apk
+/act.secrets
+*.log
+
