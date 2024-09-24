@@ -13,7 +13,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
-import xyz.graphitenerd.tassel.model.NewBookmarkViewModel
+import xyz.graphitenerd.tassel.screens.create.NewBookmarkViewModel
 
 /**
  * Example local unit test, which will execute on the development machine (host).
