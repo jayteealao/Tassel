@@ -4,18 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import xyz.graphitenerd.tassel.data.BookmarkRepository
+import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkFolder
-import xyz.graphitenerd.tassel.service.AccountService
-import xyz.graphitenerd.tassel.service.StorageService
 import javax.inject.Inject
 
 @HiltViewModel
