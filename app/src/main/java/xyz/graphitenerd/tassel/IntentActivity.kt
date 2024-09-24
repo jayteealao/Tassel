@@ -3,7 +3,6 @@ package xyz.graphitenerd.tassel
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,38 +13,24 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.raqun.beaverlib.Beaver
 import com.valentinilk.shimmer.ShimmerBounds
 import com.valentinilk.shimmer.ShimmerTheme
@@ -55,101 +40,84 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.model.*
+import xyz.graphitenerd.tassel.screens.create.BookmarkPreview
+import xyz.graphitenerd.tassel.screens.create.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
 @ExperimentalMaterialApi
 @AndroidEntryPoint
 class IntentActivity : ComponentActivity() {
-    @OptIn(
-        ExperimentalAnimationApi::class, ExperimentalLifecycleComposeApi::class,
-        ExperimentalComposeUiApi::class
-    )
+
+    /**
+     * This activity is responsible for creating a new bookmark. It receives a URL from an intent and
+     * displays a preview of the bookmark before saving it. The activity automatically closes after
+     * a timeout period.
+     *
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-        if (!Beaver.isInitialized()) {
-            Beaver.build(this)
-        }
-        Log.e("tassel", "beaver is initialized : ${Beaver.isInitialized()}")
-        val addVM: NewBookmarkViewModel by viewModels()
-        val data: Uri? = intent?.data ?: Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT))
-        Log.d("received data", "$data")
-        val formChassis = addVM.bookmarkForm
+            ViewGroup.LayoutParams.MATCH_PARENT)
+
+        if (!Beaver.isInitialized()) { Beaver.build(this) }
+
+        val newBookmarkViewModel: NewBookmarkViewModel by viewModels()
+
+        val receivedUrl: Uri? = intent?.data ?: Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT))
+
+        val bookmarkForm = newBookmarkViewModel.bookmarkForm
+
         setContent {
-            var show by remember {
-                mutableStateOf(true)
-            }
+
             TasselTheme {
                 val scope = rememberCoroutineScope()
-                val closeDialog by remember { mutableStateOf(true) }
-                // A surface container using the 'background' color from the theme
-//                val uiState by VM.uiState.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
-//                val formState = formChassis.state.collectAsState()
-                val previewBookmark = addVM.bookmarkStateFlow.collectAsState()
-                LaunchedEffect(key1 = data.toString()) {
-                    Log.d("received data", "$data")
-                    formChassis.update(BookMarkForm::address, data.toString())
-                    formChassis.update(BookMarkForm::folderTree, FolderTree())
-                    addVM.previewBookmarkForm()
-                    addVM.saveBookmarkForm()
-                }
-                scope.launch {
+                val previewBookmark = newBookmarkViewModel.bookmarkStateFlow.collectAsState()
+
+
+
+
+                LaunchedEffect(Unit) { // Timeout for auto-closing the dialog
                     delay(10000)
                     finish()
                 }
+
                 Surface(
                     modifier = Modifier
-//                        .wrapContentSize()
-                        .fillMaxSize()
-                        .clickable { },
-//                    onClick = { scope.launch { finish() } },
-//                    contentAlignment = Alignment.Center
+                        .fillMaxSize(),
+                    onClick = { scope.launch { finish() } },
                     color = Color.Transparent
 
                 ) {
-                    if (show) {
 
-                        Dialog(
-                            onDismissRequest = {
-                                scope.launch {
-                                delay(1000)
-                                    finish()
-                                }
-                            },
-                            properties = DialogProperties(
-                                dismissOnBackPress = true,
-                                dismissOnClickOutside = true
-                            )
+                    Dialog( onDismissRequest = {
+                            scope.launch {
+                                delay(300)
+                                finish()
+                            }
+                        },
+                        properties = DialogProperties(
+                            dismissOnBackPress = true,
+                            dismissOnClickOutside = true
+                        )
+                    ) {
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            backgroundColor = Color.White
                         ) {
-
-                            Card(
+                            AnimatedContent(
+                                targetState = previewBookmark.value,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .wrapContentHeight(),
-                                backgroundColor = Color.White
-                            ) {
-                                AnimatedContent(
-                                    targetState = previewBookmark.value,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight()
-                                ) {
-                                    val bookmark = previewBookmark.value
-                                    Log.e("bookmarkmarker", "$bookmark")
-                                    Log.e("bookmarkmarker", "${bookmark.javaClass.simpleName}")
-                                    if (bookmark is EmptyBookmark) {
-                                        LoadingBookmark()
-                                    } else if (bookmark is Bookmark) {
-                                        BookmarkPreview(
-                                            show = true,
-                                            bookmark = bookmark,
-                                            modifier = Modifier
-                                        )
-                                    }
+                                    .wrapContentHeight()
+                            ) { bookmark ->
+                                when (bookmark) {
+                                    is EmptyBookmark -> LoadingBookmark()
+                                    is Bookmark -> BookmarkPreview(show = true, bookmark = bookmark)
                                 }
                             }
                         }
