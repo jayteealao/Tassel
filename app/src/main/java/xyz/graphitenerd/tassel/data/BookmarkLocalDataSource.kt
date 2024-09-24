@@ -12,7 +12,6 @@ import dagger.hilt.components.SingletonComponent
 import xyz.graphitenerd.tassel.MainApplication
 import javax.inject.Inject
 
-
 // an implementation of beavers Datasource.Local interface over my bookmarks db
 class BookmarkLocalDataSource @Inject constructor( @ApplicationContext context: Context) : DataSource.Local<String, MetaData> {
 
