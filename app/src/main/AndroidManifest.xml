@@ -27,7 +27,7 @@
                 android:excludeFromRecents="true"
                 android:exported="true"
                 android:label="@string/title_activity_intent"
-                android:theme="@style/Theme.Tassel.Transparent.NoActionBar">
+                android:theme="@style/Theme.Tassel.Dialog.Transparent">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
