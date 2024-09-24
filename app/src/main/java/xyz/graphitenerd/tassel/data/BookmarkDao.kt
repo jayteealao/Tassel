@@ -15,6 +15,9 @@ interface BookmarkDao {
     @Upsert
     fun addBookmark(bookmark: Bookmark): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertBookmark(bookmark: Bookmark): Long
+
     @Delete
     fun deleteBookmark(bookmark: Bookmark)
 
