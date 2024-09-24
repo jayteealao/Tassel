@@ -1,4 +1,4 @@
-package xyz.graphitenerd.tassel.data
+package xyz.graphitenerd.tassel.data.repository
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -7,6 +7,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import xyz.graphitenerd.tassel.data.BookmarkDao
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.service.AccountService
 import xyz.graphitenerd.tassel.service.StorageService
