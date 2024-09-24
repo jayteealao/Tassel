@@ -9,10 +9,6 @@ import dagger.hilt.android.HiltAndroidApp
 @HiltAndroidApp
 class MainApplication : Application(), ImageLoaderFactory {
 
-//    override fun getWorkManagerConfiguration() =
-//        Configuration.Builder()
-//            .setWorkerFactory(workerFactory)
-//            .build()
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(applicationContext)
             .crossfade(true)
