@@ -24,12 +24,6 @@ interface StorageService {
     )
 
     suspend fun saveBookmark(bookmark: Bookmark, onSuccess: (Bookmark) -> Unit = {})
-//    fun getTask(taskId: String, onError: (Throwable) -> Unit, onSuccess: (Bookmark) -> Unit)
-//    fun saveTask(task: Task, onResult: (Throwable?) -> Unit)
-//    fun updateTask(task: Task, onResult: (Throwable?) -> Unit)
-//    fun deleteTask(taskId: String, onResult: (Throwable?) -> Unit)
-//    fun deleteAllForUser(userId: String, onResult: (Throwable?) -> Unit)
-//    fun updateUserId(oldUserId: String, newUserId: String, onResult: (Throwable?) -> Unit)
     fun setUserId(userId: String)
     suspend fun saveFolder(folder: BookmarkFolder)
 }
