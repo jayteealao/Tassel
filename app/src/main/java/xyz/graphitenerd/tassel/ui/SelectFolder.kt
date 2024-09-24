@@ -25,7 +25,7 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Folder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import xyz.graphitenerd.tassel.model.BookmarkViewModel
+import xyz.graphitenerd.tassel.screens.recents.BookmarkViewModel
 import javax.inject.Singleton
 
 @Composable
