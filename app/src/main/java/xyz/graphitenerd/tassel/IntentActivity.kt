@@ -75,10 +75,17 @@ class IntentActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
                 val previewBookmark = newBookmarkViewModel.bookmarkStateFlow.collectAsState()
 
+                LaunchedEffect(key1 = receivedUrl.toString()) {
+                    bookmarkForm.apply {
+                        update(BookMarkForm::address, receivedUrl.toString())
+                        update(BookMarkForm::folderTree, FolderTree())
+                    }
+                    newBookmarkViewModel.previewBookmarkForm()
+                    newBookmarkViewModel.saveBookmarkForm()
+                }
 
-
-
-                LaunchedEffect(Unit) { // Timeout for auto-closing the dialog
+                LaunchedEffect(Unit) {
+                    // Timeout for auto-closing the dialog
                     delay(10000)
                     finish()
                 }
