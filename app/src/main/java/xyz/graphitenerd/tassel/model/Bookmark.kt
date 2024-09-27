@@ -27,6 +27,7 @@ data class Bookmark(
     var name: String? = null,
     val mediaType: String? = null,
     var favIcon: String? = null,
+    var tags: List<String> = emptyList(),
     var folderId: Long? = null,
     @ColumnInfo(name = "creation_date")
     var creationDate: Long = System.currentTimeMillis(),
@@ -36,3 +37,4 @@ data class Bookmark(
 
 object EmptyBookmark : BookmarkMarker
 sealed interface BookmarkMarker
+

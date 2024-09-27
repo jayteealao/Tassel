@@ -41,7 +41,17 @@ class BookmarkRepository @Inject constructor(
 
     override fun getBookmarksByFolders(id: Long) = bookmarkDao.getBookmarksByFolder(id)
 
-    init {
+    fun addTagToBookmark(bookmarkId: Long, tag: String) {
+        bookmarkDao.addTagToBookmark(bookmarkId, tag)
+    }
+
+    fun removeTagFromBookmark(bookmarkId: Long, tag: String) {
+        bookmarkDao.removeTagFromBookmark(bookmarkId, tag)
+    }
+
+    fun getBookmarksByTag(tag: String): List<Bookmark> {
+        return bookmarkDao.getBookmarksByTag(tag)
+    }
         if (accountService.hasUser() and !storageService.isUserSet()) {
 //            Log.d("foldervm", "user will be set")
             storageService.setUserId(accountService.getUserId())
@@ -92,3 +102,4 @@ class BookmarkRepository @Inject constructor(
 
     }
 }
+

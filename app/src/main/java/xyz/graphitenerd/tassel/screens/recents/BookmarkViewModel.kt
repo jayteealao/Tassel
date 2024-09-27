@@ -59,6 +59,22 @@ class BookmarkViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) { bookmarkRepository.syncUnsyncedBookmarks() }
     }
 
+    fun addTagToBookmark(bookmarkId: Long, tag: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkRepository.addTagToBookmark(bookmarkId, tag)
+        }
+    }
+
+    fun removeTagFromBookmark(bookmarkId: Long, tag: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkRepository.removeTagFromBookmark(bookmarkId, tag)
+        }
+    }
+
+    fun getBookmarksByTag(tag: String): List<Bookmark> {
+        return bookmarkRepository.getBookmarksByTag(tag)
+    }
+
     private fun initializeBookmarkCount() {
         viewModelScope.launch(Dispatchers.IO) {
             bookmarkRepository.countBookmarks().collect {
@@ -74,3 +90,4 @@ class BookmarkViewModel @Inject constructor(
     }
 
 }
+

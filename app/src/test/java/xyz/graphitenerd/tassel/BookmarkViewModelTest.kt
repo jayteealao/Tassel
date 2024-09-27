@@ -147,4 +147,36 @@ open class BookmarkViewModelTest {
             )
         }
     }
+
+    @Test
+    fun `test adding a tag to a bookmark`() = runTest {
+        val bookmarkId = bookmarks[0].id
+        val tag = "testTag"
+        viewModel.addTagToBookmark(bookmarkId, tag)
+
+        val updatedBookmark = viewModel.getBookmarkById(bookmarkId)
+        assertThat(updatedBookmark.tags.contains(tag), equalTo(true))
+    }
+
+    @Test
+    fun `test removing a tag from a bookmark`() = runTest {
+        val bookmarkId = bookmarks[0].id
+        val tag = "testTag"
+        viewModel.addTagToBookmark(bookmarkId, tag)
+        viewModel.removeTagFromBookmark(bookmarkId, tag)
+
+        val updatedBookmark = viewModel.getBookmarkById(bookmarkId)
+        assertThat(updatedBookmark.tags.contains(tag), equalTo(false))
+    }
+
+    @Test
+    fun `test querying bookmarks by tag`() = runTest {
+        val tag = "testTag"
+        viewModel.addTagToBookmark(bookmarks[0].id, tag)
+
+        val taggedBookmarks = viewModel.getBookmarksByTag(tag)
+        assertThat(taggedBookmarks.isNotEmpty(), equalTo(true))
+        assertThat(taggedBookmarks[0].tags.contains(tag), equalTo(true))
+    }
 }
+

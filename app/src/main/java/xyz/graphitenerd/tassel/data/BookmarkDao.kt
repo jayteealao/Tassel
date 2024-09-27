@@ -51,6 +51,16 @@ interface BookmarkDao {
     @Query("SELECT * FROM bookmark WHERE folderId LIKE :folderId")
     fun getBookmarksByFolder(folderId: Long): Flow<List<Bookmark>>
 
+    @Query("UPDATE bookmark SET tags = tags || :tag WHERE id = :bookmarkId")
+    fun addTagToBookmark(bookmarkId: Long, tag: String)
+
+    @Query("UPDATE bookmark SET tags = (SELECT tags FROM bookmark WHERE id = :bookmarkId) - :tag WHERE id = :bookmarkId")
+    fun removeTagFromBookmark(bookmarkId: Long, tag: String)
+
+    @Query("SELECT * FROM bookmark WHERE :tag IN tags")
+    fun getBookmarksByTag(tag: String): List<Bookmark>
+
     @Query("SELECT count(*) FROM bookmark")
     fun countBookmarks(): Flow<Int>
 }
+
