@@ -13,8 +13,6 @@ import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.service.AccountService
 import xyz.graphitenerd.tassel.service.StorageService
-import xyz.graphitenerd.tassel.ui.FolderTree
-import xyz.graphitenerd.tassel.ui.ToggleButtonState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,6 +21,7 @@ class BookmarkViewModel @Inject constructor(
     private val folderRepository: FolderRepository,
     private val storageService: StorageService,
     private val accountService: AccountService
+    //TODO: inject coroutine dispatcher, best practice
 ) : ViewModel() {
 
     var bookmarkCount = MutableStateFlow(0)
@@ -32,11 +31,8 @@ class BookmarkViewModel @Inject constructor(
     var deletedBookmark: MutableStateFlow<Bookmark?> = MutableStateFlow(null)
         private set
 
-    val folderTree: FolderTree = FolderTree()
-
     init {
         initializeBookmarkCount()
-        initializeFolderTree()
         initializeUserStorage()
     }
 
@@ -69,10 +65,6 @@ class BookmarkViewModel @Inject constructor(
                 bookmarkCount.value = it
             }
         }
-    }
-
-    private fun initializeFolderTree() {
-        folderTree.buildFolderTree(this)
     }
 
     private fun initializeUserStorage() {

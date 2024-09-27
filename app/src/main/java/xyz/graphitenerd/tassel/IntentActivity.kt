@@ -8,7 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
@@ -39,10 +38,11 @@ import com.valentinilk.shimmer.shimmer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import xyz.graphitenerd.tassel.model.*
+import xyz.graphitenerd.tassel.model.BookMarkForm
+import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.EmptyBookmark
 import xyz.graphitenerd.tassel.screens.create.BookmarkPreview
 import xyz.graphitenerd.tassel.screens.create.NewBookmarkViewModel
-import xyz.graphitenerd.tassel.ui.FolderTree
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
 @ExperimentalMaterialApi
@@ -78,7 +78,7 @@ class IntentActivity : ComponentActivity() {
                 LaunchedEffect(key1 = receivedUrl.toString()) {
                     bookmarkForm.apply {
                         update(BookMarkForm::address, receivedUrl.toString())
-                        update(BookMarkForm::folderTree, FolderTree())
+                        update(BookMarkForm::folderTree, newBookmarkViewModel.currentFolder.value)
                     }
                     newBookmarkViewModel.previewBookmarkForm()
                     newBookmarkViewModel.saveBookmarkForm()
