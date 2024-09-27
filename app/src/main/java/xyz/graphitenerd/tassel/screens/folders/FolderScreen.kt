@@ -1,7 +1,6 @@
 package xyz.graphitenerd.tassel.screens.folders
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -192,7 +191,7 @@ fun FolderScreen(
                     icon = rememberVectorPainter(Icons.Default.Edit),
                     background = Color(0xFF7CB9E8),
                     onSwipe = {
-                        Log.d("edit", "${Screens.ADDNEW.name}?id=${it.id}")
+//                        Log.d("edit", "${Screens.ADDNEW.name}?id=${it.id}")
 
                         navController.navigate("${Screens.ADDNEW.name}?id=${it.id}")
                     }

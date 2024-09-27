@@ -1,6 +1,5 @@
 package xyz.graphitenerd.tassel.data.repository
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,7 +50,7 @@ class BookmarkRepository @Inject constructor(
 
     override fun syncBookmarksToCloud() {
         if (!accountService.hasUser()) { return }
-        Log.e("sync", "userid: ${accountService.getUserId()}")
+//        Log.e("sync", "userid: ${accountService.getUserId()}")
 
         val job = SupervisorJob()
         scope.launch(Dispatchers.IO + job) {
@@ -60,7 +59,7 @@ class BookmarkRepository @Inject constructor(
                     getLastSavedBookmark(it)
                 }
             ) {
-                Log.e("sync", "${it.message}")
+//                Log.e("sync", "${it.message}")
                 job.completeExceptionally(it)
             }
         }
@@ -68,10 +67,10 @@ class BookmarkRepository @Inject constructor(
 
     override suspend fun saveBookmarkToCloud(bookmark: Bookmark) = storageService
         .saveBookmark(bookmark.copy(synced = true)) {
-            Log.d("sync-unsynced", "synced $it")
+//            Log.d("sync-unsynced", "synced $it")
             scope.launch(Dispatchers.IO) {
                 val data = bookmarkDao.addBookmark(it)
-                Log.d("sync-unsynced", "synced $data")
+//                Log.d("sync-unsynced", "synced $data")
 
             }
         }
@@ -83,9 +82,9 @@ class BookmarkRepository @Inject constructor(
 
     override suspend fun syncUnsyncedBookmarks() {
         delay(1000)
-        Log.d("sync-unsynced", "syncing")
+//        Log.d("sync-unsynced", "syncing")
         bookmarkDao.getUnsyncedBookmarks().forEach {
-            Log.d("sync-unsynced", "$it")
+//            Log.d("sync-unsynced", "$it")
             scope.launch {
                 saveBookmarkToCloud(it)
             }

@@ -1,9 +1,11 @@
 package xyz.graphitenerd.tassel.screens.recents
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.activity.compose.LocalActivityResultRegistryOwner
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
@@ -40,7 +42,10 @@ import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.Screens
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.screens.AuthViewModel
-import xyz.graphitenerd.tassel.ui.*
+import xyz.graphitenerd.tassel.ui.BookmarkCard
+import xyz.graphitenerd.tassel.ui.EmptyBookmarkFolder
+import xyz.graphitenerd.tassel.ui.HomeAppBar
+import xyz.graphitenerd.tassel.ui.SearchBar
 import xyz.graphitenerd.tassel.utils.CustomSwipeableActionsBox
 import xyz.graphitenerd.tassel.utils.SwipeAction
 
@@ -180,7 +185,7 @@ private fun Contents(
                 icon = rememberVectorPainter(Icons.Default.Edit),
                 background = Color(0xFF7CB9E8),
                 onSwipe = {
-                    Log.d("edit", "${Screens.ADDNEW.name}?id=${bookmark.id}")
+//                    Log.d("edit", "${Screens.ADDNEW.name}?id=${bookmark.id}")
 
                     navController.navigate("${Screens.ADDNEW.name}?id=${bookmark.id}")
                 }

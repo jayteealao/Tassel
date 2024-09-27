@@ -1,20 +1,14 @@
 package xyz.graphitenerd.tassel.service
 
-import android.util.Log
 import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.DocumentChange.Type.REMOVED
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
-import com.google.firebase.firestore.ktx.toObjects
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkFolder
@@ -31,7 +25,7 @@ open class StorageServiceImpl @Inject constructor(
     private var userId: String? = null
 
     override fun setUserId(userId: String) {
-        Log.d("","userid set")
+//        Log.d("","userid set")
         this@StorageServiceImpl.userId = userId
         setBookmarksRef(userId)
         setFoldersRef(userId)
@@ -47,7 +41,7 @@ open class StorageServiceImpl @Inject constructor(
 
     private lateinit var foldersRef: CollectionReference
     private fun setFoldersRef(userId: String) {
-        Log.d("","foldersref created")
+//        Log.d("","foldersref created")
         foldersRef = firestore
             .collection(APPDATA_COLLECTION)
             .document(userId)
@@ -95,16 +89,16 @@ open class StorageServiceImpl @Inject constructor(
                 }
             }
         }?.addOnFailureListener {
-            Log.d("sync", "error: ${it.message}")
+//            Log.d("sync", "error: ${it.message}")
         }
     }
 
     override suspend fun syncFoldersToCloud(folders: List<BookmarkFolder>) {
-        Log.d("","folder sync started")
+//        Log.d("","folder sync started")
         folders.forEach {
             scope.launch {
                 foldersRef.document(it.id.toString()).set(it).addOnSuccessListener {
-                    Log.d("","folder synced")
+//                    Log.d("","folder synced")
 
                 }
             }

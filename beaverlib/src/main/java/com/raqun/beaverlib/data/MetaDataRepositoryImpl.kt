@@ -1,6 +1,5 @@
 package com.raqun.beaverlib.data
 
-import android.util.Log
 import com.raqun.beaverlib.model.MetaData
 import com.raqun.beaverlib.util.AsyncManager
 import kotlinx.coroutines.Deferred
@@ -26,7 +25,7 @@ class MetaDataRepositoryImpl(
 //        if (cachedMetaData != null) {
 //            return@handleAsync cachedMetaData
 //        }
-        Log.e("tassel", "in beaver getMetadata fn: $url")
+//        Log.e("tassel", "in beaver getMetadata fn: $url")
 
         val localMetaData = metaDataLocalDataSource?.get(url)
         if (localMetaData != null) {
@@ -42,7 +41,7 @@ class MetaDataRepositoryImpl(
         if (remoteMetaData != null) {
             metaDataCacheDataSource?.put(url, remoteMetaData)
             metaDataLocalDataSource?.let {
-                Log.e("tassel", "in beaver, save to local url: $url , metadata:${remoteMetaData.name}")
+//                Log.e("tassel", "in beaver, save to local url: $url , metadata:${remoteMetaData.name}")
 
                 handleAsync { it.put(url, remoteMetaData) }
             }

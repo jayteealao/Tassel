@@ -1,7 +1,6 @@
 package com.raqun.beaverlib
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Room
 import com.raqun.beaverlib.data.DataSource
 import com.raqun.beaverlib.data.MetaDataRepository
@@ -52,7 +51,7 @@ object Beaver {
         forceLocal: Boolean = false
     ): Deferred<MetaData?> {
         assertIsInitialized()
-        Log.e("tassel", "in beaver load fn: $url")
+//        Log.e("tassel", "in beaver load fn: $url")
         return metaDataRepository!!.getMetaData(url, forceRefresh, forceLocal)
     }
 

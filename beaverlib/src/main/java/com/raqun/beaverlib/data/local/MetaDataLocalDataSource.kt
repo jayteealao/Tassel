@@ -1,6 +1,5 @@
 package com.raqun.beaverlib.data.local
 
-import android.util.Log
 import com.raqun.beaverlib.data.DataSource
 import com.raqun.beaverlib.model.MetaData
 
@@ -18,7 +17,7 @@ class MetaDataLocalDataSource(private val db: BeaverDb) : DataSource.Local<Strin
     }
 
     override fun put(key: String, data: MetaData): Boolean {
-        Log.e("tassel", "in beaver local")
+//        Log.e("tassel", "in beaver local")
 
         val metadataEntity = entityMapper.map(data)
         return db.metaDataDao().addMetaData(metadataEntity) > 0
