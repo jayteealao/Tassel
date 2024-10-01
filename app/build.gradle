@@ -98,12 +98,12 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'androidx.appcompat:appcompat:1.5.0'
-    implementation 'com.google.android.material:material:1.6.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.6'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
 
 //    compose
@@ -114,13 +114,14 @@ dependencies {
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation "androidx.compose.runtime:runtime-tracing:1.0.0-alpha01"
+    implementation "androidx.compose.runtime:runtime-tracing:1.0.0-beta01"
+    implementation "androidx.compose.material3:material3:1.3.0"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
 
 //    compose interop
-    implementation 'androidx.activity:activity-compose:1.5.1'
-    implementation "androidx.navigation:navigation-compose:2.5.1"
-    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
+    implementation 'androidx.activity:activity-compose:1.9.2'
+    implementation "androidx.navigation:navigation-compose:2.8.1"
+    implementation 'androidx.hilt:hilt-navigation-compose:1.2.0'
 
 //    coil
     implementation "io.coil-kt:coil-compose:2.2.2"
@@ -154,8 +155,8 @@ dependencies {
 
     def paging_version = "3.1.1"
 
-    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
-    implementation "androidx.paging:paging-compose:1.0.0-alpha16"
+    implementation "androidx.paging:paging-runtime-ktx:3.3.2"
+    implementation "androidx.paging:paging-compose:3.3.2"
 
     implementation 'io.github.boguszpawlowski.chassis:chassis:0.1.0'
 
@@ -167,7 +168,9 @@ dependencies {
 
     implementation "me.saket.swipe:swipe:1.0.0"
 
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
+    implementation "me.saket.cascade:cascade-compose:2.3.0"
+
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 
     implementation "androidx.work:work-runtime-ktx:2.7.1"
     implementation "androidx.work:work-multiprocess:2.7.1"
@@ -182,8 +185,8 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:4.8'
     testImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
 
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
 
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
@@ -193,7 +196,7 @@ dependencies {
 //    implementation project(':bonsai')
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     testLogging {
         exceptionFormat "full"
         events "started", "skipped", "passed", "failed"
