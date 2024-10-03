@@ -1,5 +1,6 @@
 package xyz.graphitenerd.tassel.data
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -24,7 +25,7 @@ interface BookmarkDao {
     @Query("DELETE FROM bookmark WHERE rawUrl = :url")
     fun deleteBookmarkWithUrl(url: String)
 
-    @Query("SELECT * FROM bookmark WHERE synced = false")
+    @Query("SELECT * FROM bookmark WHERE synced = 0")
     fun getUnsyncedBookmarks(): List<Bookmark>
 
 //    @Query("SELECT * FROM bookmark")
@@ -53,4 +54,7 @@ interface BookmarkDao {
 
     @Query("SELECT count(*) FROM bookmark")
     fun countBookmarks(): Flow<Int>
+
+    @Query("SELECT * FROM bookmark ORDER BY creation_date DESC")
+    fun bookmarksPagingSource(): PagingSource<Int, Bookmark>
 }

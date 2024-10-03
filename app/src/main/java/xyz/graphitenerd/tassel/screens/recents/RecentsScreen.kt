@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Snackbar
@@ -18,24 +17,24 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.R
@@ -96,6 +95,7 @@ fun RecentScreen(
 
         val snackbarState by bookmarkViewModel.deletedBookmark.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
         val count by bookmarkViewModel.bookmarkCount.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+        val bookmarksPagedData = bookmarkViewModel.bookmarksPagingData.collectAsLazyPagingItems()
 
         LaunchedEffect(true) {
             bookmarkViewModel.syncBookmarksToCloud()
@@ -114,7 +114,8 @@ fun RecentScreen(
             }
         }
         RecentScreenContent(
-            bookmarksFlow = bookmarkViewModel.bookmarks,
+//            bookmarksFlow = bookmarkViewModel.bookmarks,
+            bookmarks = bookmarksPagedData,
             navController = navController,
             deleteAction = { bookmarkViewModel.deleteBookmark(it) },
             count
@@ -124,31 +125,21 @@ fun RecentScreen(
 
 @Composable
 fun RecentScreenContent(
-    bookmarksFlow: Flow<List<Bookmark>>,
+    bookmarks: LazyPagingItems<Bookmark>,
     navController: NavController,
     deleteAction: (Bookmark) -> Unit = {},
     bookmarkCount: Int = 0
 ) {
-    val bookmarks: State<List<Bookmark>> = bookmarksFlow.collectAsState(emptyList())
-    if (bookmarkCount == 0) {
+    if (bookmarks.itemCount == 0) {
         EmptyBookmarkFolder()
     } else {
-        Contents(bookmarks.value, navController, deleteAction)
-    }
-}
-
-@Composable
-fun RecentScreenContent(uiState: List<Bookmark>) {
-    if (uiState.isEmpty()) {
-        EmptyBookmarkFolder()
-    } else {
-//        Contents(uiState)
+        Contents(bookmarks, navController, deleteAction)
     }
 }
 
 @Composable
 private fun Contents(
-    bookmarks: List<Bookmark>,
+    bookmarks: LazyPagingItems<Bookmark>,
     navController: NavController,
     deleteAction: (Bookmark) -> Unit = {},
 ) {
@@ -168,15 +159,18 @@ private fun Contents(
                 color = Color.Black,
             )
         }
-        items(bookmarks, key = { it.id }) { bookmark ->
-//            Log.e("tassel", "in recent screen column, current bookmark $bookmark")
 
+        items(
+            count = bookmarks.itemCount,
+            key = bookmarks.itemKey { it.id },
+            contentType = { "bookmark" }
+        ) { index ->
             val delete = SwipeAction(
                 icon = painterResource(id = R.drawable.icoutlinedelete),
                 background = Color.Red,
                 onSwipe = {
                     scope.launch(Dispatchers.IO) {
-                        deleteAction(bookmark)
+                        deleteAction(bookmarks[index]!!)
                     }
                 }
             )
@@ -187,7 +181,7 @@ private fun Contents(
                 onSwipe = {
 //                    Log.d("edit", "${Screens.ADDNEW.name}?id=${bookmark.id}")
 
-                    navController.navigate("${Screens.ADDNEW.name}?id=${bookmark.id}")
+                    navController.navigate("${Screens.ADDNEW.name}?id=${bookmarks[index]!!.id}")
                 }
             )
 
@@ -198,7 +192,7 @@ private fun Contents(
                 swipeThreshold = 96.dp,
                 backgroundUntilSwipeThreshold = Color.White
             ) {
-                BookmarkCard(bookmark = bookmark)
+                BookmarkCard(bookmark = bookmarks[index]!!)
                 Divider(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     color = Color.Black,

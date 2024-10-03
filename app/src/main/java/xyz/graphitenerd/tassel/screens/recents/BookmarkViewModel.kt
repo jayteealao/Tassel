@@ -3,10 +3,14 @@ package xyz.graphitenerd.tassel.screens.recents
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
@@ -27,6 +31,10 @@ class BookmarkViewModel @Inject constructor(
     var bookmarkCount = MutableStateFlow(0)
 
     val bookmarks: Flow<List<Bookmark>> = bookmarkRepository.getRecentBookmarks()
+
+    val bookmarksPagingData = bookmarkRepository.bookmarksPagingData()
+        .cachedIn(viewModelScope)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PagingData.empty())
 
     var deletedBookmark: MutableStateFlow<Bookmark?> = MutableStateFlow(null)
         private set

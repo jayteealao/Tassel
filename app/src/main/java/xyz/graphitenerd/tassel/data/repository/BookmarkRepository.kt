@@ -1,5 +1,8 @@
 package xyz.graphitenerd.tassel.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -90,5 +93,12 @@ class BookmarkRepository @Inject constructor(
             }
         }
 
+    }
+
+    override fun bookmarksPagingData(): Flow<PagingData<Bookmark>> {
+        return Pager(
+            config = PagingConfig(pageSize = 20),
+            pagingSourceFactory = { bookmarkDao.bookmarksPagingSource() }
+        ).flow
     }
 }
