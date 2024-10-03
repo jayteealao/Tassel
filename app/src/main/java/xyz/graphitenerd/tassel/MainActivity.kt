@@ -6,7 +6,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -15,20 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.graphitenerd.tassel.model.Bookmark
-import xyz.graphitenerd.tassel.screens.create.AddBookmarkScreen
-import xyz.graphitenerd.tassel.screens.folders.FolderScreen
-import xyz.graphitenerd.tassel.screens.recents.RecentScreen
+import xyz.graphitenerd.tassel.screens.TasselNavHost
 import xyz.graphitenerd.tassel.ui.BottomNavButton
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
@@ -47,6 +44,8 @@ class MainActivity : ComponentActivity() {
             // Remember a SystemUiController
             val systemUiController = rememberSystemUiController()
             val useDarkIcons = !isSystemInDarkTheme()
+            val navController = rememberNavController()
+
             DisposableEffect(systemUiController, useDarkIcons) {
                 systemUiController.setSystemBarsColor(
                     color = Color.White,
@@ -64,47 +63,10 @@ class MainActivity : ComponentActivity() {
                     contentAlignment = Alignment.BottomCenter
                 ) {
 
-                    val navController = rememberNavController()
+                    TasselNavHost(
+                        navController = navController
+                    )
 
-                    NavHost(
-                        modifier = Modifier.fillMaxSize(),
-                        navController = navController,
-                        startDestination = Screens.RECENTS.name
-                    ) {
-                        composable(Screens.RECENTS.name) {
-                            RecentScreen(
-                                bookmarkViewModel = hiltViewModel(),
-                                authViewModel = hiltViewModel(),
-                                navController = navController,
-                                onNavigateToAddNew = {
-                                    navController.navigate(Screens.ADDNEW.name)
-//                                    bookmarkViewModel.loadJsonBookmarks()
-                                }
-                            )
-                        }
-                        composable(
-                            "${Screens.ADDNEW.name}?id={id}",
-                            arguments = listOf(
-                                navArgument("id") {
-//                                    nullable = true
-                                    type = NavType.StringType
-                                    defaultValue = "0"
-                                }
-                            )
-                        ) { backStackEntry ->
-                            AddBookmarkScreen(
-                                addNewVM = hiltViewModel(),
-                                bookmarkViewModel = hiltViewModel(),
-                                backStackEntry.arguments?.getString("id")?.toLong()
-                            )
-                        }
-                        composable(Screens.FOLDERS.name) {
-                            FolderScreen(
-                                VM = hiltViewModel(),
-                                navController = navController
-                            )
-                        }
-                    }
                     AnimatedVisibility(
                         visible = navController
                             .currentBackStackEntryAsState()
