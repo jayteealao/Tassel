@@ -13,13 +13,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.paging.compose.collectAsLazyPagingItems
-import xyz.graphitenerd.tassel.Screens
 import xyz.graphitenerd.tassel.screens.create.AddBookmarkScreen
 import xyz.graphitenerd.tassel.screens.create.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.screens.folders.FolderScreen
 import xyz.graphitenerd.tassel.screens.folders.FolderViewModel
 import xyz.graphitenerd.tassel.screens.recents.BookmarkViewModel
 import xyz.graphitenerd.tassel.screens.recents.RecentScreen
+import xyz.graphitenerd.tassel.screens.settings.SettingsScreen
 
 @Composable
 fun TasselNavHost(
@@ -28,6 +28,7 @@ fun TasselNavHost(
     addNewBookmarkViewModel: NewBookmarkViewModel = hiltViewModel(),
     bookmarkViewModel: BookmarkViewModel = hiltViewModel(),
     folderViewModel: FolderViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val recentScreenState = bookmarkViewModel.recentScreenStateFlow.collectAsStateWithLifecycle(
         LocalLifecycleOwner.current)
@@ -75,5 +76,17 @@ fun TasselNavHost(
                 navController = navController
             )
         }
+        composable(Screens.SETTINGS.name) {
+            SettingsScreen(
+                authViewModel = authViewModel,
+            )
+        }
     }
+}
+
+enum class Screens {
+    RECENTS,
+    FOLDERS,
+    ADDNEW,
+    SETTINGS
 }

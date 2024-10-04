@@ -1,6 +1,5 @@
 package xyz.graphitenerd.tassel.ui
 
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -121,7 +120,7 @@ fun FolderDropDownMenu(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun FolderSelectorCard(
+fun FolderSelectorCard(
     fileTree: FileTree,
     isHeader: Boolean = false,
     isSelected: Boolean = false,
@@ -136,15 +135,15 @@ private fun FolderSelectorCard(
             if (!isHeader) {
                 onSelect(fileTree)
             } else if (fileTree.parent != null) {
-                Log.d("folder", "header clicked parent is ${fileTree.parent.folderName}")
+//                Log.d("folder", "header clicked parent is ${fileTree.parent.folderName}")
                     onNavigate(fileTree.parent)
                 }
             }
     ) {
         Row(
             modifier = Modifier
-                .padding(start = 8.dp, bottom = 4.dp, top = 8.dp)
-                .then(if (isSelected && !isHeader) Modifier.background(Color.Green) else Modifier),
+                .then(if (isSelected && !isHeader) Modifier.background(Color.Green) else Modifier)
+                .padding(start = 8.dp, bottom = 4.dp, top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {

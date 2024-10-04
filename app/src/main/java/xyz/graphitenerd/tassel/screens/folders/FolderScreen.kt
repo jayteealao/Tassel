@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -48,8 +50,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.R
-import xyz.graphitenerd.tassel.Screens
 import xyz.graphitenerd.tassel.model.BookmarkFolder
+import xyz.graphitenerd.tassel.screens.Screens
 import xyz.graphitenerd.tassel.ui.BookmarkCard
 import xyz.graphitenerd.tassel.ui.FolderCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
@@ -63,6 +65,8 @@ fun FolderScreen(
     navController: NavController
 ) {
 
+    val scrollState = rememberScrollState()
+    val lazyListState = rememberLazyListState()
     val folders by VM.folders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
     val bookmarks by VM.bookmarks.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle, initialValue = emptyList())
     val currentFolder by VM.currentFolder.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
@@ -116,10 +120,8 @@ fun FolderScreen(
         }
 
         LazyColumn(
-//            modifier = Modifier
-//                .padding(horizontal = 16.dp)
-//                .padding(bottom = 72.dp)
-        contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 78.dp)
+            state = lazyListState,
+            contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 78.dp)
         ) {
             item {
                 AnimatedVisibility(visible = showNewFolderInput) {
@@ -155,6 +157,8 @@ fun FolderScreen(
                                                 )
                                             )
                                             VM.refreshScreen(id = VM.currentFolderId)
+                                            newFolderName = ""
+                                            showNewFolderInput = false
                                         }
                                     }
                                 }
@@ -175,24 +179,19 @@ fun FolderScreen(
                     folder = it,
                     onClick = {
                         scope.launch(Dispatchers.IO) {
+//                            lazyListState.scrollToItem(0)
                             VM.refreshScreen(it.id)
+                            //scroll back to top
+                            lazyListState.animateScrollToItem(0)
                         }
                     }
                 )
             }
             items(bookmarks, key = { "bookmark${it.id}" }) {
-//                BookmarkCard(bookmark = it)
-//                Divider(
-//                    modifier = Modifier.padding(horizontal = 20.dp),
-//                    color = Color.Black
-//                )
-
                 val edit = SwipeAction(
                     icon = rememberVectorPainter(Icons.Default.Edit),
                     background = Color(0xFF7CB9E8),
                     onSwipe = {
-//                        Log.d("edit", "${Screens.ADDNEW.name}?id=${it.id}")
-
                         navController.navigate("${Screens.ADDNEW.name}?id=${it.id}")
                     }
                 )

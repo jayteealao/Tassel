@@ -1,9 +1,10 @@
 package xyz.graphitenerd.tassel.ui
 
-import android.content.Intent
-import android.net.Uri
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,9 +34,16 @@ import coil.request.ImageRequest
 import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.model.Bookmark
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun BookmarkCard(bookmark: Bookmark, modifier: Modifier = Modifier) {
+fun BookmarkCard(
+    modifier: Modifier = Modifier,
+    bookmark: Bookmark,
+    isSelected: Boolean = false,
+    selectionEnabled: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongPress: () -> Unit = {}
+) {
 //    Log.d("checkvalue", "in bookmark card")
     val context = LocalContext.current
 
@@ -43,80 +51,89 @@ fun BookmarkCard(bookmark: Bookmark, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(0.dp, 20.dp),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongPress,
+            ),
         elevation = 0.dp,
         shape = RectangleShape,
-        onClick = {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse(bookmark.rawUrl)
-            }
-            context.startActivity(intent)
-        }
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(bookmark.imageUrl)
-                        .size(600)
-                        .crossfade(true)
-                        .build(),
-                    placeholder = painterResource(R.drawable.placeholder),
-                    fallback = painterResource(R.drawable.placeholder),
-                    contentDescription = "favicon",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.clip(RectangleShape).size(72.dp).padding(4.dp)
+        val backgroundColor = if (isSelected) Color.LightGray else Color.White
+        Box(
+            modifier = Modifier
+                .background(backgroundColor)
+                .padding(0.dp, 20.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Row {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(bookmark.imageUrl)
+                            .size(600)
+                            .crossfade(true)
+                            .build(),
+                        placeholder = painterResource(R.drawable.placeholder),
+                        fallback = painterResource(R.drawable.placeholder),
+                        contentDescription = "favicon",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .clip(RectangleShape)
+                            .size(72.dp)
+                            .padding(4.dp)
 
-                )
-                Column(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .fillMaxWidth()
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        bookmark.title?.let {
-                            Text(
-                                text = it,
-                                maxLines = 2,
-                                modifier = Modifier.weight(9f),
-                                //                        modifier = Modifier.fillMaxWidth(0.8f),
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(bookmark.favIcon)
-                                .size(48)
-                                .crossfade(true)
-                                .build(),
-                            placeholder = painterResource(R.drawable.placeholder),
-                            fallback = painterResource(R.drawable.placeholder),
-                            contentDescription = "favicon",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.clip(RectangleShape).size(24.dp)
-
-                        )
-//                            modifier = Modifier.padding(8.dp)
-                    }
-
-                    Spacer(Modifier.height(2.dp))
-
-                    Text(
-                        text = bookmark.rawUrl,
-                        style = MaterialTheme.typography.subtitle2,
-                        color = Color.LightGray,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
                     )
+                    Column(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            bookmark.title?.let {
+                                Text(
+                                    text = it,
+                                    maxLines = 2,
+                                    modifier = Modifier.weight(9f),
+                                    //                        modifier = Modifier.fillMaxWidth(0.8f),
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(bookmark.favIcon)
+                                    .size(48)
+                                    .crossfade(true)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.placeholder),
+                                fallback = painterResource(R.drawable.placeholder),
+                                contentDescription = "favicon",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier
+                                    .clip(RectangleShape)
+                                    .size(24.dp)
+
+                            )
+//                            modifier = Modifier.padding(8.dp)
+                        }
+
+                        Spacer(Modifier.height(2.dp))
+
+                        Text(
+                            text = bookmark.rawUrl,
+                            style = MaterialTheme.typography.subtitle2,
+                            color = Color.LightGray,
+                            fontSize = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
-            }
 //            Divider(
 //                color = Color.Black,
 //            )
+            }
         }
     }
 }
@@ -137,5 +154,5 @@ fun BookmarkCardPreview() {
             "c196e834c7f21fe3fb34e722925433ddb936d280c9/android/images/favicon.png"
     )
 
-    BookmarkCard(sampleBookmark)
+    BookmarkCard(bookmark = sampleBookmark)
 }

@@ -60,7 +60,6 @@ class BookmarkRepository @Inject constructor(
 
     override fun syncBookmarksToCloud() {
         if (!accountService.hasUser()) { return }
-//        Log.e("sync", "userid: ${accountService.getUserId()}")
 
         val job = SupervisorJob()
         scope.launch(Dispatchers.IO + job) {
@@ -77,11 +76,8 @@ class BookmarkRepository @Inject constructor(
 
     override suspend fun saveBookmarkToCloud(bookmark: Bookmark) = storageService
         .saveBookmark(bookmark.copy(synced = true)) {
-//            Log.d("sync-unsynced", "synced $it")
             scope.launch(Dispatchers.IO) {
-                val data = bookmarkDao.addBookmark(it)
-//                Log.d("sync-unsynced", "synced $data")
-
+                bookmarkDao.addBookmark(it)
             }
         }
 
