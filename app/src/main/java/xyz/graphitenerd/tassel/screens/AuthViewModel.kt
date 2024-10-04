@@ -3,23 +3,35 @@ package xyz.graphitenerd.tassel.screens
 import android.app.Activity.RESULT_OK
 import androidx.lifecycle.ViewModel
 import com.firebase.ui.auth.AuthUI
-import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
-import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.boguszpawlowski.chassis.Field
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.service.AccountService
+import xyz.graphitenerd.tassel.service.UserDetails
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    val accountService: AccountService,
+    private val accountService: AccountService,
 ): ViewModel() {
 
-    lateinit var user: FirebaseUser
+//    lateinit var user: FirebaseUser
+
+    private var _user = MutableStateFlow<FirebaseUser?>(null)
+    val user: StateFlow<FirebaseUser?>
+        get() = _user
+
+    private val _userDetails = MutableStateFlow<UserDetails?>(null)
+    val userDetails: StateFlow<UserDetails?>
+        get() = _userDetails
+
+
+    fun hasUser() = accountService.hasUser()
 
     fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
         val response = result.idpResponse
@@ -27,7 +39,8 @@ class AuthViewModel @Inject constructor(
             // Successfully signed in
             val firebaseUser = FirebaseAuth.getInstance().currentUser
             if (firebaseUser != null) {
-                user = firebaseUser
+                _user.value = firebaseUser
+                _userDetails.value = accountService.getUserDetails()
             }
             // ...
         } else {
@@ -38,20 +51,25 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    init {
+        _userDetails.value = accountService.getUserDetails()
+    }
+
         // [START auth_fui_create_intent]
         // Choose authentication providers
-        val providers = arrayListOf(
-            AuthUI.IdpConfig.EmailBuilder().build(),
-            AuthUI.IdpConfig.GoogleBuilder().build())
 
-        // Create and launch sign-in intent
-        val signInIntent = AuthUI.getInstance()
-            .createSignInIntentBuilder()
-            .setAvailableProviders(providers)
-            .setTheme(R.style.GreenTheme)
-            .setLogo(R.drawable.tassel_app_icon)
-            .build()
-        // [END auth_fui_create_intent]
+    val providers = arrayListOf(
+        AuthUI.IdpConfig.EmailBuilder().build(),
+        AuthUI.IdpConfig.GoogleBuilder().build())
+
+    // Create and launch sign-in intent
+    val signInIntent = AuthUI.getInstance()
+        .createSignInIntentBuilder()
+        .setAvailableProviders(providers)
+        .setTheme(R.style.GreenTheme)
+        .setLogo(R.drawable.tassel_app_icon)
+        .build()
+    // [END auth_fui_create_intent]
 
 }
 
