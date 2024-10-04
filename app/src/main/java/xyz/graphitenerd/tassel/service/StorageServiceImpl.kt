@@ -7,7 +7,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.Source
-import com.google.firebase.firestore.ktx.toObject
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.model.Bookmark
@@ -65,7 +65,8 @@ open class StorageServiceImpl @Inject constructor(
 
             value?.documentChanges?.forEach {
                 val wasDocumentDeleted = it.type == REMOVED
-//                val task = it.document.toObject<Bookmark>().copy(id = it.document.id.toLong())
+//                val task = it.document
+                it.document.toObject<Bookmark>()
                 val bookmark = it.document.toObject<Bookmark>()
                 onDocumentEvent(wasDocumentDeleted, bookmark)
             }
@@ -81,8 +82,8 @@ open class StorageServiceImpl @Inject constructor(
         onError: (Throwable) -> Unit
     ) {
         var bookmark: Bookmark?
-        bookmarksRef?.orderBy("creationDate", Query.Direction.DESCENDING)?.limit(1)?.get(Source.SERVER)?.addOnSuccessListener {
-            bookmark = it.toBookmarks().firstOrNull()
+        bookmarksRef?.orderBy("creationDate", Query.Direction.DESCENDING)?.limit(1)?.get(Source.SERVER)?.addOnSuccessListener { querySnapshot ->
+            bookmark = querySnapshot.toBookmarks().firstOrNull()
             scope.launch {
                 getLocalBookmark(bookmark?.creationDate ?: 0).forEach {
                     bookmarksRef?.document(it.id.toString())?.set(it)
