@@ -19,6 +19,15 @@ open class AccountServiceImpl @Inject constructor() : AccountService {
         return Firebase.auth.currentUser?.uid.orEmpty()
     }
 
+    override fun getUserDetails(): UserDetails {
+        val user = Firebase.auth.currentUser
+        return UserDetails(
+            userId = user?.uid.orEmpty(),
+            email = user?.email.orEmpty(),
+            displayName = user?.displayName.orEmpty(),
+            photoUrl = user?.photoUrl?.toString().orEmpty())
+    }
+
     override fun authenticate(email: String, password: String, onResult: (Throwable?) -> Unit) {
         Firebase.auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { onResult(it.exception) }
