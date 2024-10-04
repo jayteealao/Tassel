@@ -2,7 +2,6 @@ package xyz.graphitenerd.tassel.data
 
 import androidx.room.Dao
 import androidx.room.Delete
-import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
 import xyz.graphitenerd.tassel.model.Bookmark
@@ -12,6 +11,9 @@ import xyz.graphitenerd.tassel.model.BookmarkFolder
 interface FolderDao {
     @Upsert
     fun insertFolder(folder: BookmarkFolder)
+
+    @Upsert
+    fun updateFolders(folders: List<BookmarkFolder>)
 
     @Delete
     fun deleteFolder(folder: BookmarkFolder)

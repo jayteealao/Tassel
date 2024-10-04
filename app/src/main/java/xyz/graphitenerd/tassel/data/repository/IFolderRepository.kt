@@ -7,6 +7,7 @@ interface IFolderRepository {
     fun getFoldersByParentId(id: Long?): List<BookmarkFolder>
     fun getFolderByName(name: String): BookmarkFolder
     fun insertFolder(folder: BookmarkFolder)
+    fun updateFolders(folders: List<BookmarkFolder>)
     fun getFolders(): List<BookmarkFolder>
     fun syncFoldersToCloud()
 

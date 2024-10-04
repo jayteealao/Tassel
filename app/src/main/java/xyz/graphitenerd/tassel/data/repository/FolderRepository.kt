@@ -1,6 +1,5 @@
 package xyz.graphitenerd.tassel.data.repository
 
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +20,6 @@ class FolderRepository @Inject constructor(
 
     init {
         if (accountService.hasUser() and !storageService.isUserSet()) {
-//            Log.d("foldervm", "user will be set")
             storageService.setUserId(accountService.getUserId())
         }
     }
@@ -33,6 +31,8 @@ class FolderRepository @Inject constructor(
     override fun getFolderByName(name: String) = folderDao.getFolderByName(name)
 
     override fun insertFolder(folder: BookmarkFolder) = folderDao.insertFolder(folder)
+
+    override fun updateFolders(folders: List<BookmarkFolder>) = folderDao.updateFolders(folders)
 
     override fun getFolders() = folderDao.getFolders()
 

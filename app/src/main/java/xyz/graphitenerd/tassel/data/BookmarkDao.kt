@@ -16,23 +16,23 @@ interface BookmarkDao {
     @Upsert
     fun addBookmark(bookmark: Bookmark): Long
 
+    @Upsert
+    fun addBookmarks(bookmarks: List<Bookmark>)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertBookmark(bookmark: Bookmark): Long
 
     @Delete
-    fun deleteBookmark(bookmark: Bookmark)
+    fun deleteBookmark(bookmarks: List<Bookmark>)
+
+    @Delete(entity = Bookmark::class)
+    fun deleteBookmark(vararg bookmarkIds: BookmarkId)
 
     @Query("DELETE FROM bookmark WHERE rawUrl = :url")
     fun deleteBookmarkWithUrl(url: String)
 
     @Query("SELECT * FROM bookmark WHERE synced = 0")
     fun getUnsyncedBookmarks(): List<Bookmark>
-
-//    @Query("SELECT * FROM bookmark")
-//    fun getAllBookmarks(): List<Bookmark>
-//
-//    @Query("SELECT * FROM bookmark")
-//    fun getAllBookmarks(): PagingSource<Int, Bookmark>
 
     @Query("SELECT * FROM bookmark")
     fun getAllBookmarks(): Flow<List<Bookmark>>
@@ -46,6 +46,9 @@ interface BookmarkDao {
     @Query("SELECT * FROM bookmark WHERE id = :id")
     fun getBookmarkById(id: Long): Bookmark
 
+    @Query("SELECT * FROM bookmark WHERE id IN (:ids)")
+    fun getBookmarksById(ids: List<Long>): List<Bookmark>
+
     @Query("SELECT * FROM bookmark WHERE rawUrl LIKE :search")
     fun getBookmark(search: String): List<Bookmark>
 
@@ -57,4 +60,9 @@ interface BookmarkDao {
 
     @Query("SELECT * FROM bookmark ORDER BY creation_date DESC")
     fun bookmarksPagingSource(): PagingSource<Int, Bookmark>
+
 }
+
+data class BookmarkId(
+    val id: Long
+)

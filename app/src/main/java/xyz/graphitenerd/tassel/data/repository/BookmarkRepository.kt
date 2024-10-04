@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.data.BookmarkDao
+import xyz.graphitenerd.tassel.data.BookmarkId
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.service.AccountService
 import xyz.graphitenerd.tassel.service.StorageService
@@ -32,15 +33,21 @@ class BookmarkRepository @Inject constructor(
 
     override fun addBookmark(bookmark: Bookmark) = bookmarkDao.addBookmark(bookmark)
 
+    override fun addBookmarks(bookmarks: List<Bookmark>) = bookmarkDao.addBookmarks(bookmarks)
+
     override fun getRecentBookmarks() = bookmarkDao.getRecentBookmarks()
 
     override fun getBookmarkById(id: Long) = bookmarkDao.getBookmarkById(id)
+
+    override fun getBookmarksById(ids: List<Long>) = bookmarkDao.getBookmarksById(ids)
 
 //    fun deleteBookmarkById(id: Long) = bookmarkDao.deleteBookmarkById(id)
 
     override fun getLastSavedBookmark(time: Long) = bookmarkDao.getLastSavedBookmark(time)
 
-    override fun deleteBookmark(bookmark: Bookmark) = bookmarkDao.deleteBookmark(bookmark)
+    override fun deleteBookmark(bookmarks: List<Bookmark>) = bookmarkDao.deleteBookmark(bookmarks)
+
+    override fun deleteBookmark(bookmarkIds: Array<BookmarkId>) = bookmarkDao.deleteBookmark(*bookmarkIds)
 
     override fun getBookmarksByFolders(id: Long) = bookmarkDao.getBookmarksByFolder(id)
 
