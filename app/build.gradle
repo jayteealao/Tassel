@@ -53,7 +53,8 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
-            debuggable true
+            debuggable false
+            profileable false
         }
         debug {
             signingConfig signingConfigs.release
@@ -64,6 +65,7 @@ android {
             signingConfig signingConfigs.release
             matchingFallbacks = ['release']
             debuggable false
+            profileable true
         }
     }
 
@@ -174,6 +176,9 @@ dependencies {
 
     implementation "androidx.work:work-runtime-ktx:2.7.1"
     implementation "androidx.work:work-multiprocess:2.7.1"
+
+    implementation "com.github.alorma.compose-settings:ui-tiles:2.6.0"
+    implementation "com.github.alorma.compose-settings:ui-tiles-extended:2.6.0"
 
     testImplementation 'junit:junit:4.13.2'
 
