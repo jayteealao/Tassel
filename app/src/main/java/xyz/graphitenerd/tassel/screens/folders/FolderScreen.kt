@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -24,8 +23,6 @@ import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,12 +48,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.model.BookmarkFolder
-import xyz.graphitenerd.tassel.screens.Screens
 import xyz.graphitenerd.tassel.ui.BookmarkCard
 import xyz.graphitenerd.tassel.ui.FolderCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
-import xyz.graphitenerd.tassel.utils.CustomSwipeableActionsBox
-import xyz.graphitenerd.tassel.utils.SwipeAction
+import xyz.graphitenerd.tassel.ui.SwipeBox
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -64,8 +59,6 @@ fun FolderScreen(
     VM: FolderViewModel,
     navController: NavController
 ) {
-
-    val scrollState = rememberScrollState()
     val lazyListState = rememberLazyListState()
     val folders by VM.folders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
     val bookmarks by VM.bookmarks.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle, initialValue = emptyList())
@@ -179,38 +172,21 @@ fun FolderScreen(
                     folder = it,
                     onClick = {
                         scope.launch(Dispatchers.IO) {
-//                            lazyListState.scrollToItem(0)
                             VM.refreshScreen(it.id)
-                            //scroll back to top
                             lazyListState.animateScrollToItem(0)
                         }
                     }
                 )
             }
             items(bookmarks, key = { "bookmark${it.id}" }) {
-                val edit = SwipeAction(
-                    icon = rememberVectorPainter(Icons.Default.Edit),
-                    background = Color(0xFF7CB9E8),
-                    onSwipe = {
-                        navController.navigate("${Screens.ADDNEW.name}?id=${it.id}")
-                    }
-                )
-
-                val delete = SwipeAction(
-                    icon = painterResource(id = R.drawable.icoutlinedelete),
-                    background = Color.Red,
-                    onSwipe = {
+                SwipeBox(
+                    modifier = Modifier,
+                    onDelete = {
                         scope.launch(Dispatchers.IO) {
                             VM.deleteBookmark(it)
                         }
-                    }
-                )
-                CustomSwipeableActionsBox(
-                    modifier = Modifier,
-                    startActions = listOf(edit),
-                    endActions = listOf(delete),
-                    swipeThreshold = 96.dp,
-                    backgroundUntilSwipeThreshold = Color.White
+                    },
+                    onEdit = {}
                 ) {
                     BookmarkCard(bookmark = it)
                     Divider(
