@@ -1,9 +1,11 @@
 package xyz.graphitenerd.tassel.ui
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
@@ -18,13 +20,17 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +40,22 @@ fun SwipeBox(
     onEdit: () -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val swipeState = rememberSwipeToDismissBoxState()
+
+
+//     Creates a [SwipeToDismissBoxState] that is remembered across compositions.
+//     It sets the positional threshold to 75% of the width, ensuring the swipe action
+//     is triggered onlywhen the user swipes 75% of the box's width.
+//    width is set inside the BoxWithConstraints scope
+    var width by remember { mutableStateOf(0.dp) }
+    val swipeState = rememberSwipeToDismissBoxState(
+        positionalThreshold = with(LocalDensity.current) { {
+            if (width == 0.dp) {
+                56.dp.toPx()
+            } else {
+                width.toPx() / 0.75f
+            }
+        } },
+    )
     val haptic = LocalHapticFeedback.current
     var icon = remember { mutableStateOf(Icons.Outlined.Delete) }
     var alignment = remember { mutableStateOf(Alignment.CenterEnd) }
@@ -62,8 +83,12 @@ fun SwipeBox(
 
     when (swipeState.currentValue) {
         SwipeToDismissBoxValue.EndToStart -> {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            onDelete()
+            Log.d("SwipeBox", "${swipeState.progress}")
+
+            if(swipeState.progress > 0.95f) {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                onDelete()
+            }
             LaunchedEffect(swipeState) {
                 swipeState.snapTo(SwipeToDismissBoxValue.Settled)
             }
@@ -98,6 +123,11 @@ fun SwipeBox(
             }
         }
     ) {
-        Box(Modifier.wrapContentHeight()){ content() }
+        BoxWithConstraints(
+            Modifier.wrapContentHeight()
+        ){
+            width = maxWidth
+            content()
+        }
     }
 }
