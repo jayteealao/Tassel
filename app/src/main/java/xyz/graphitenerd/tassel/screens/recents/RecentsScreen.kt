@@ -73,10 +73,10 @@ import xyz.graphitenerd.tassel.ui.FileTree
 import xyz.graphitenerd.tassel.ui.FolderSelectorCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
 import xyz.graphitenerd.tassel.ui.SearchBar
-import xyz.graphitenerd.tassel.utils.CustomSwipeableActionsBox
+import xyz.graphitenerd.tassel.ui.SwipeBox
 import xyz.graphitenerd.tassel.utils.SwipeAction
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnusedBoxWithConstraintsScope")
 @Composable
 fun RecentScreen(
     bookmarks: LazyPagingItems<Bookmark>,
@@ -143,19 +143,6 @@ fun RecentScreen(
             var width = 0.dp
             val scrollState = rememberScrollState()
             Column {
-//                BoxWithConstraints(Modifier.wrapContentSize()) {
-//                    width = maxWidth
-//                    FolderDropDownMenu(
-//                        fileTree = folderSelectionState.currentFolder,
-//                        selectedFolder = folderSelectionState.selectedFolder,
-//                        isExpanded = folderSelectionState.showFolderSelector,
-//                        onExpand = { },
-//                        onDismissRequest = { folderSelectionState.toggleFolderSelection() },
-//                        onNavigate = { folderSelectionState.onClick(it) },
-//                        onFolderSelected = { folderSelectionState.onFolderSelected(it) }
-//                    )
-//                }
-//                if (width > 0.dp) {
                 Dialog (
                     onDismissRequest = { folderSelectionState.toggleFolderSelection() },
                     properties = DialogProperties(
@@ -379,13 +366,14 @@ private fun Contents(
                     navController.navigate("${Screens.ADDNEW.name}?id=${bookmark.id}")
                 }
             )
-
-            CustomSwipeableActionsBox(
+            SwipeBox(
                 modifier = Modifier,
-                startActions = if (!recentScreenState.isSelectionMode) listOf(edit) else emptyList(),
-                endActions = if (!recentScreenState.isSelectionMode) listOf(delete) else emptyList(),
-                swipeThreshold = 96.dp,
-                backgroundUntilSwipeThreshold = Color.White
+                onDelete = {
+                    scope.launch(Dispatchers.IO) {
+                        deleteAction(bookmark)
+                    }
+                },
+                onEdit = {}
             ) {
                 BookmarkCard(
                     bookmark = bookmark,
