@@ -3,7 +3,6 @@ package xyz.graphitenerd.tassel.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import com.raqun.beaverlib.data.local.DbEntity
 import java.util.*
 
 @Entity(
@@ -25,14 +24,14 @@ data class Bookmark(
     var desc: String? = null,
     var imageUrl: String? = null,
     var name: String? = null,
-    val mediaType: String? = null,
+    var mediaType: String? = null,
     var favIcon: String? = null,
     var folderId: Long? = null,
     @ColumnInfo(name = "creation_date")
     var creationDate: Long = System.currentTimeMillis(),
     @ColumnInfo(defaultValue = true.toString())
     var synced: Boolean = false
-) : DbEntity, BookmarkMarker
+) : BookmarkMarker
 
 object EmptyBookmark : BookmarkMarker
 sealed interface BookmarkMarker

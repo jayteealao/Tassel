@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.raqun.beaverlib.Beaver
 import com.valentinilk.shimmer.ShimmerBounds
 import com.valentinilk.shimmer.ShimmerTheme
 import com.valentinilk.shimmer.rememberShimmer
@@ -60,8 +59,6 @@ class IntentActivity : ComponentActivity() {
         window.setLayout(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT)
-
-        if (!Beaver.isInitialized()) { Beaver.build(this) }
 
         val newBookmarkViewModel: NewBookmarkViewModel by viewModels()
 

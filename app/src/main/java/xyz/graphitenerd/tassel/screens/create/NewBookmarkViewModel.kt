@@ -1,8 +1,8 @@
 package xyz.graphitenerd.tassel.screens.create
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.boguszpawlowski.chassis.chassis
 import io.github.boguszpawlowski.chassis.field
@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import xyz.graphitenerd.tassel.data.MetadataToBookmarkMapper
+import me.saket.unfurl.UnfurlResult
+import me.saket.unfurl.Unfurler
 import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.BookMarkForm
@@ -22,6 +23,8 @@ import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkMarker
 import xyz.graphitenerd.tassel.model.EmptyBookmark
 import xyz.graphitenerd.tassel.ui.FileTree
+import xyz.graphitenerd.tassel.utils.OpenGraphunfurlExtension
+import xyz.graphitenerd.tassel.utils.ogExtra
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,10 +35,13 @@ class NewBookmarkViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var isEdit = false
-    private val metadataToBookmarkMapper = MetadataToBookmarkMapper()
 
     private var _bookmarkStateFlow: MutableStateFlow<BookmarkMarker> = MutableStateFlow(EmptyBookmark)
     val bookmarkStateFlow = _bookmarkStateFlow.asStateFlow()
+
+    private val unfurler = Unfurler(
+        extensions = listOf(OpenGraphunfurlExtension())
+    )
 
     val bookmarkForm = chassis<BookMarkForm> {
         BookMarkForm(
@@ -71,12 +77,18 @@ class NewBookmarkViewModel @Inject constructor(
         }
         with(bookmarkForm()) {
             viewModelScope.launch(coroutineDispatcher) {
-                if (Beaver.isInitialized() and (address() != null)) {
+                if (address() != null) {
 //                    Log.e("tassel", "on save form address is ${address()}")
-                    val data = Beaver.load(address()).await()
+                    val unfurlResult = unfurler.unfurl(address())
+                    val extra = unfurlResult?.ogExtra()
+                    Log.d("tassel", "metadata: $extra")
+//                    val data = Beaver.load(address()).await()
 //                    Log.e("tassel", "metadata: ${data.toString()}")
-                    if (data != null) {
-                        _bookmarkStateFlow.value = metadataToBookmarkMapper.map(data)
+                    if (unfurlResult != null) {
+                        _bookmarkStateFlow.value = unfurlResult.toBookmarkMapper(address()).apply {
+                            name = extra?.name
+                            mediaType = extra?.mediaType
+                        }
                         if ((bookmarkStateFlow.value != EmptyBookmark) and (title() == null)) {
                             val bookmarkData = bookmarkStateFlow.value as Bookmark
                             bookmarkData.folderId = folderTree().folderId
@@ -105,17 +117,23 @@ class NewBookmarkViewModel @Inject constructor(
             with(bookmarkForm()) {
 //                Log.e("tassel", "on save form address is ${address()}")
                 viewModelScope.launch(coroutineDispatcher) {
-                    if (Beaver.isInitialized()) {
-                        val data = Beaver.load(address()).await()
+//                    if (Beaver.isInitialized()) {
+//                        val data = Beaver.load(address()).await()
+                    val unfurlResult = unfurler.unfurl(address())
+                    val extra = unfurlResult?.ogExtra()
+                    Log.d("tassel", "metadata: $extra")
 //                        Log.e("tassel", "metadata: $data")
-                        if (data != null) {
+                        if (unfurlResult != null) {
                             bookmarkRepository.saveAndSyncBookmark(
-                                metadataToBookmarkMapper.map(data).apply {
+//                                metadataToBookmarkMapper.map(data).apply {
+                                unfurlResult.toBookmarkMapper(address()).apply {
                                     folderId = folderTree().folderId
+                                    name = extra?.name
+                                    mediaType = extra?.mediaType
                                 }
                             )
                         }
-                    }
+//                    }
                 }
             }
         }
@@ -168,4 +186,17 @@ class NewBookmarkViewModel @Inject constructor(
         _currentFolder.value =
             fileTree.run { withChildren { getFolderChildren(this) } }
     }
+}
+
+private fun UnfurlResult.toBookmarkMapper(rawUrl: String): Bookmark {
+
+    return Bookmark(
+        rawUrl = rawUrl,
+        url = this.url.toString(),
+        title = this.title,
+        desc = this.description,
+        favIcon = this.favicon.toString(),
+        imageUrl = this.thumbnail.toString()
+    )
+
 }

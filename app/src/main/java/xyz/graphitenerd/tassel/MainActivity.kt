@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.raqun.beaverlib.Beaver
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.graphitenerd.tassel.screens.Screens
 import xyz.graphitenerd.tassel.screens.TasselNavHost
@@ -31,10 +30,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (!Beaver.isInitialized()) {
-            Beaver.build(this)
-        }
 
         setContent {
 
