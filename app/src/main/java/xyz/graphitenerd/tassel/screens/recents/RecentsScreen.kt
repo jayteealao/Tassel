@@ -34,7 +34,6 @@ import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.rememberScaffoldState
@@ -50,9 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -63,7 +60,6 @@ import androidx.paging.compose.itemKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.screens.Screens
 import xyz.graphitenerd.tassel.screens.folders.FolderSelectionState
@@ -74,7 +70,6 @@ import xyz.graphitenerd.tassel.ui.FolderSelectorCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
 import xyz.graphitenerd.tassel.ui.SearchBar
 import xyz.graphitenerd.tassel.ui.SwipeBox
-import xyz.graphitenerd.tassel.utils.SwipeAction
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnusedBoxWithConstraintsScope")
 @Composable
@@ -349,23 +344,6 @@ private fun Contents(
             val bookmark = bookmarks[index]!!
             val isSelected = recentScreenState.selectedBookmarks.contains(bookmark.id)
 
-            val delete = SwipeAction(
-                icon = painterResource(id = R.drawable.icoutlinedelete),
-                background = Color.Red,
-                onSwipe = {
-                    scope.launch(Dispatchers.IO) {
-                        deleteAction(bookmark)
-                    }
-                }
-            )
-
-            val edit = SwipeAction(
-                icon = rememberVectorPainter(Icons.Default.Edit),
-                background = Color(0xFF7CB9E8),
-                onSwipe = {
-                    navController.navigate("${Screens.ADDNEW.name}?id=${bookmark.id}")
-                }
-            )
             SwipeBox(
                 modifier = Modifier,
                 onDelete = {
