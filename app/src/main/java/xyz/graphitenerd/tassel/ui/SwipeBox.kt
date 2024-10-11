@@ -64,6 +64,9 @@ fun SwipeBox(
         SwipeToDismissBoxValue.EndToStart -> {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onDelete()
+            LaunchedEffect(swipeState) {
+                swipeState.snapTo(SwipeToDismissBoxValue.Settled)
+            }
         }
 
         SwipeToDismissBoxValue.StartToEnd -> {
