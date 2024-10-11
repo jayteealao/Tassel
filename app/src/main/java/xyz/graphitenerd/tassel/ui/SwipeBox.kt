@@ -23,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,14 +35,10 @@ fun SwipeBox(
     content: @Composable BoxScope.() -> Unit
 ) {
     val swipeState = rememberSwipeToDismissBoxState()
-
+    val haptic = LocalHapticFeedback.current
     var icon = remember { mutableStateOf(Icons.Outlined.Delete) }
     var alignment = remember { mutableStateOf(Alignment.CenterEnd) }
     var color = remember { mutableStateOf(Color.Red) }
-
-//    lateinit var icon: ImageVector
-//    lateinit var alignment: Alignment
-//    val color: Color
 
     when (swipeState.dismissDirection) {
         SwipeToDismissBoxValue.EndToStart -> {
@@ -64,6 +62,7 @@ fun SwipeBox(
 
     when (swipeState.currentValue) {
         SwipeToDismissBoxValue.EndToStart -> {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             onDelete()
         }
 
