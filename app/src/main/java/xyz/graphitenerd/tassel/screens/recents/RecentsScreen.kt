@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -22,12 +23,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
-import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Snackbar
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -68,8 +70,9 @@ import xyz.graphitenerd.tassel.ui.EmptyBookmarkFolder
 import xyz.graphitenerd.tassel.ui.FileTree
 import xyz.graphitenerd.tassel.ui.FolderSelectorCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
-import xyz.graphitenerd.tassel.ui.SearchBar
+import xyz.graphitenerd.tassel.ui.SearchContent
 import xyz.graphitenerd.tassel.ui.SwipeBox
+import xyz.graphitenerd.tassel.ui.TasselSearchBar
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter", "UnusedBoxWithConstraintsScope")
 @Composable
@@ -77,6 +80,7 @@ fun RecentScreen(
     bookmarks: LazyPagingItems<Bookmark>,
     recentScreenState: RecentScreenState,
     folderSelectionState: FolderSelectionState,
+    searchScreenState: SearchScreenState = SearchScreenState(),
     scaffoldState: ScaffoldState = rememberScaffoldState(),
     navController: NavController, //TODO: remove navcontroller
     onNavigateToAddNew: () -> Unit = {}, //TODO: change to onNavigate with a nullable Long if null, navigate to add new
@@ -103,9 +107,15 @@ fun RecentScreen(
     ) {
 
 
-        BackHandler(enabled = recentScreenState.isSelectionMode) {
+        BackHandler(enabled = recentScreenState.isSelectionMode || searchScreenState.showSearchResults ) {
 //            selectionState.toggleSelectionMode()
-            recentScreenState.clearSelectedBookmarks()
+            if (searchScreenState.showSearchResults) {
+                searchScreenState.toggleShowSearchResults(false)
+            }
+
+            if (recentScreenState.isSelectionMode) {
+                recentScreenState.clearSelectedBookmarks()
+            }
         }
 
 //        LaunchedEffect(true) {
@@ -124,12 +134,13 @@ fun RecentScreen(
                 }
             }
         }
+
         RecentScreenContent(
             bookmarks = bookmarks,
-            navController = navController,
             deleteAction = { recentScreenState.deleteBookmarks(listOf(it.id)) },
             recentScreenState = recentScreenState,
-            folderSelectionState = folderSelectionState
+            folderSelectionState = folderSelectionState,
+            searchScreenState = searchScreenState
         )
 
         AnimatedVisibility(
@@ -146,7 +157,8 @@ fun RecentScreen(
                     )
                 ) {
                     BoxWithConstraints(
-                        modifier = Modifier.height(384.dp)
+                        modifier = Modifier
+                            .height(384.dp)
                             .fillMaxWidth()
                             .border(
                                 width = 1.dp,
@@ -186,14 +198,17 @@ fun RecentScreen(
                             }
                         }
                         Row(
-                            Modifier.fillMaxWidth()
+                            Modifier
+                                .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
                                 .padding(vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceAround,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             OutlinedButton(
-                                modifier = Modifier.height(48.dp).width((maxWidth / 2) - 12.dp),
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .width((maxWidth / 2) - 12.dp),
                                 onClick = {
                                     folderSelectionState.toggleFolderSelection()
                                     folderSelectionState.onFolderSelected(FileTree())
@@ -208,7 +223,9 @@ fun RecentScreen(
                                 Text(text = "Cancel")
                             }
                             OutlinedButton(
-                                modifier = Modifier.height(48.dp).width((maxWidth / 2) - 12.dp),
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .width((maxWidth / 2) - 12.dp),
                                 enabled = folderSelectionState.selectedFolder != null,
                                 onClick = {
                                     folderSelectionState.updateBookmarkFolders(recentScreenState.selectedBookmarks)
@@ -236,26 +253,38 @@ fun RecentScreen(
 @Composable
 fun RecentScreenContent(
     bookmarks: LazyPagingItems<Bookmark>,
-    navController: NavController,
     deleteAction: (Bookmark) -> Unit = {},
     recentScreenState: RecentScreenState = RecentScreenState(),
-    folderSelectionState: FolderSelectionState = FolderSelectionState()
+    folderSelectionState: FolderSelectionState = FolderSelectionState(),
+    searchScreenState: SearchScreenState = SearchScreenState()
 ) {
-    if (bookmarks.itemCount == 0) {
-        EmptyBookmarkFolder()
-    } else {
-        Contents(bookmarks, navController, deleteAction, recentScreenState, folderSelectionState)
+//    if (bookmarks.itemCount == 0) {
+//        EmptyBookmarkFolder()
+//    } else if (searchScreenState.showSearchResults){
+//        SearchContent(modifier = Modifier.fillMaxSize(), bookmarks = searchScreenState.searchResults)
+//    } else {
+//        RecentBookmarks(bookmarks, deleteAction, recentScreenState, folderSelectionState, searchScreenState)
+//    }
+
+    AnimatedContent(
+        targetState = recentScreenState.screenState
+    ) { targetState ->
+        when (targetState) {
+            ScreenState.EMPTY -> EmptyBookmarkFolder()
+            ScreenState.RECENT -> RecentBookmarks(bookmarks, deleteAction, recentScreenState, folderSelectionState, searchScreenState)
+            ScreenState.SEARCH -> SearchContent(modifier = Modifier.fillMaxSize(), searchScreenState = searchScreenState, bookmarks = searchScreenState.searchResults)
+        }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun Contents(
+private fun RecentBookmarks(
     bookmarks: LazyPagingItems<Bookmark>,
-    navController: NavController,
     deleteAction: (Bookmark) -> Unit = {},
     recentScreenState: RecentScreenState,
-    folderSelectionState: FolderSelectionState
+    folderSelectionState: FolderSelectionState,
+    searchScreenState: SearchScreenState
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -269,14 +298,17 @@ private fun Contents(
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(20.dp))
-            SearchBar()
+            TasselSearchBar(searchScreenState)
             Spacer(modifier = Modifier.height(20.dp))
             Divider(
                 color = Color.Black,
             )
         }
 
-        stickyHeader() {
+        stickyHeader(
+//            key = { "header" },
+//            contentType = { "header" }
+        ) {
             AnimatedVisibility(
                 recentScreenState.isSelectionMode
             ) {
@@ -322,8 +354,8 @@ private fun Contents(
                             }
                         }
                     }
-                    Divider(color = Color.Black)
-
+//                    Divider(color = Color.Black)
+//TODO: leave uncommented
 //                    Box(modifier = Modifier.size(24.dp)) {
 //                        IconButton(
 //                            icon = FontAwesomeIcons.Solid.Tag
@@ -331,6 +363,7 @@ private fun Contents(
                     //TODO: add tag selection method
 //                }
 //            }
+                    //TODO: resume uncommenting here
                 }
             }
         }
@@ -345,7 +378,8 @@ private fun Contents(
             val isSelected = recentScreenState.selectedBookmarks.contains(bookmark.id)
 
             SwipeBox(
-                modifier = Modifier,
+                modifier = Modifier
+                    .wrapContentHeight(),
                 onDelete = {
                     scope.launch(Dispatchers.IO) {
                         deleteAction(bookmark)

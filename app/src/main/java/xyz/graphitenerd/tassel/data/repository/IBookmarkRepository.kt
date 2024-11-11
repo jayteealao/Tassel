@@ -7,6 +7,7 @@ import xyz.graphitenerd.tassel.model.Bookmark
 
 interface IBookmarkRepository {
     fun getAllBookmarks(): Flow<List<Bookmark>>
+    fun searchBookmarks(query: String): List<Bookmark>
     fun countBookmarks(): Flow<Int>
     fun addBookmark(bookmark: Bookmark): Long
     fun getRecentBookmarks(): Flow<List<Bookmark>>

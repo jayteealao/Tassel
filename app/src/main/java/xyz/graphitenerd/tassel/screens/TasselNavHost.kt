@@ -36,6 +36,8 @@ fun TasselNavHost(
         LocalLifecycleOwner.current)
 
     val bookmarks = bookmarkViewModel.bookmarksPagingData.collectAsLazyPagingItems()
+    val searchScreenState = bookmarkViewModel.searchScreenStateFlow.collectAsStateWithLifecycle(
+        LocalLifecycleOwner.current)
 
     NavHost(
         modifier = modifier.fillMaxSize(),
@@ -47,6 +49,7 @@ fun TasselNavHost(
                 bookmarks = bookmarks,
                 recentScreenState = recentScreenState.value,
                 folderSelectionState = folderSelectionState.value,
+                searchScreenState = searchScreenState.value,
                 navController = navController,
                 onNavigateToAddNew = {
                     navController.navigate(Screens.ADDNEW.name)
@@ -73,7 +76,7 @@ fun TasselNavHost(
         composable(Screens.FOLDERS.name) {
             FolderScreen(
                 VM = folderViewModel,
-                navController = navController
+//                navController = navController
             )
         }
         composable(Screens.SETTINGS.name) {

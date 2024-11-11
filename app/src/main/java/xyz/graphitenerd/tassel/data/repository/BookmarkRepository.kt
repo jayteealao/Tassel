@@ -29,6 +29,8 @@ class BookmarkRepository @Inject constructor(
         return bookmarkDao.getAllBookmarks()
     }
 
+    override fun searchBookmarks(query: String): List<Bookmark> = bookmarkDao.searchBookmarks(query)
+
     override fun countBookmarks() = bookmarkDao.countBookmarks()
 
     override fun addBookmark(bookmark: Bookmark) = bookmarkDao.addBookmark(bookmark)

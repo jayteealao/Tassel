@@ -49,8 +49,14 @@ interface BookmarkDao {
     @Query("SELECT * FROM bookmark WHERE id IN (:ids)")
     fun getBookmarksById(ids: List<Long>): List<Bookmark>
 
-    @Query("SELECT * FROM bookmark WHERE rawUrl LIKE :search")
-    fun getBookmark(search: String): List<Bookmark>
+    @Query("""
+        SELECT * FROM bookmark
+        WHERE url LIKE '%' || :search || '%'
+        OR title LIKE '%' || :search || '%'
+        OR `desc` LIKE '%' || :search || '%'
+        OR rawUrl LIKE '%' || :search || '%'
+    """)
+    fun searchBookmarks(search: String): List<Bookmark>
 
     @Query("SELECT * FROM bookmark WHERE folderId LIKE :folderId")
     fun getBookmarksByFolder(folderId: Long): Flow<List<Bookmark>>

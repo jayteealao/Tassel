@@ -42,6 +42,21 @@ class BookmarkViewModel @Inject constructor(
 
     private var _selectedBookmarks = MutableStateFlow<List<Long>>(emptyList())
 
+    private var _screenState = MutableStateFlow(ScreenState.EMPTY)
+    private var _showSearchResults = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch {
+            bookmarksPagingData.collect {
+                if (it == PagingData.empty<Bookmark>()) {
+                    _screenState.value = ScreenState.EMPTY
+                } else if (_showSearchResults.value == false) {
+                    _screenState.value = ScreenState.RECENT
+                }
+            }
+        }
+    }
+
     /**
      * StateFlow representing the current state of the Recent screen.
      *
@@ -64,7 +79,8 @@ class BookmarkViewModel @Inject constructor(
         _selectedBookmarks,
         _isSelectionMode,
         deletedBookmarks,
-    ) { selectedBookmarks, isSelectionMode, deletedBookmarks -> RecentScreenState(
+        _screenState
+    ) { selectedBookmarks, isSelectionMode, deletedBookmarks, screenState -> RecentScreenState(
         selectedBookmarks = selectedBookmarks,
         isSelectionMode = isSelectionMode,
         deletedBookmarks = deletedBookmarks,
@@ -72,7 +88,8 @@ class BookmarkViewModel @Inject constructor(
         toggleSelectionMode = ::toggleSelectionMode,
         clearSelectedBookmarks = ::clearSelectedBookmarks,
         deleteBookmarks = ::deleteBookmark,
-        addBookmarks = ::addBookmarks
+        addBookmarks = ::addBookmarks,
+        screenState = screenState
     ) }.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), RecentScreenState())
 
@@ -150,6 +167,46 @@ class BookmarkViewModel @Inject constructor(
         }
     }
 
+    private var _searchQuery = MutableStateFlow("")
+//    val searchQuery: Flow<String> = _searchQuery
+
+    private var _searchResults = MutableStateFlow<List<Bookmark>>(emptyList())
+//    val searchResults: Flow<List<Bookmark>?> = _searchResults
+
+    private fun searchBookmarks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _searchResults.value = bookmarkRepository.searchBookmarks(_searchQuery.value)
+//                .stateIn(viewModelScope)
+        }
+    }
+
+    private fun onQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+
+    private fun onExpandedChange(isExpanded: Boolean) {
+        _showSearchResults.value = isExpanded
+        if (_showSearchResults.value) {
+            _screenState.value = ScreenState.SEARCH
+        } else {
+            _screenState.value = ScreenState.RECENT
+        }
+    }
+
+    val searchScreenStateFlow: StateFlow<SearchScreenState> = combine(
+        _searchQuery,
+        _searchResults,
+        _showSearchResults
+    ) { searchQuery, searchResults, isSearchActive -> SearchScreenState(
+        searchQuery = searchQuery,
+        searchResults = searchResults,
+        showSearchResults = isSearchActive,
+        onQueryChange = ::onQueryChange,
+        toggleShowSearchResults = ::onExpandedChange,
+        searchBookmarks = ::searchBookmarks
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchScreenState())
+
 }
 
 data class RecentScreenState(
@@ -161,4 +218,20 @@ data class RecentScreenState(
     val clearSelectedBookmarks: () -> Unit = {},
     val deleteBookmarks: (List<Long>) -> Unit = {},
     val addBookmarks: (List<Bookmark>) -> Unit = {},
+    val screenState: ScreenState = ScreenState.EMPTY
 )
+
+data class SearchScreenState(
+    val searchQuery: String = "",
+    val onQueryChange: (String) -> Unit = {},
+    val showSearchResults: Boolean = false,
+    val toggleShowSearchResults: (Boolean) -> Unit = {},
+    val searchResults: List<Bookmark> = emptyList(),
+    val searchBookmarks: () -> Unit = {},
+)
+
+enum class ScreenState {
+    SEARCH,
+    RECENT,
+    EMPTY
+}
