@@ -1,5 +1,7 @@
 package xyz.graphitenerd.tassel.service
 
+import android.util.Log
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentChange.Type.REMOVED
 import com.google.firebase.firestore.FirebaseFirestore
@@ -77,7 +79,7 @@ open class StorageServiceImpl @Inject constructor(
         listenerRegistration?.remove()
     }
 
-    override suspend fun syncBookmarksToStorage(
+    override suspend fun syncBookmarksToFirebase(
         getLocalBookmark: (Long) -> List<Bookmark>,
         onError: (Throwable) -> Unit
     ) {
@@ -92,6 +94,33 @@ open class StorageServiceImpl @Inject constructor(
         }?.addOnFailureListener {
 //            Log.d("sync", "error: ${it.message}")
         }
+    }
+
+    override fun syncBookmarksFromFirebase(
+        onError: (Throwable) -> Unit,
+        onResult: (List<Bookmark>) -> Unit,
+        ) {
+        bookmarksRef?.count()?.get(AggregateSource.SERVER)?.addOnSuccessListener {
+            val count = it.count.toInt()
+            Log.d("sync storage service", "count: $count")
+        }
+        bookmarksRef?.orderBy("creationDate", Query.Direction.DESCENDING)?.get(Source.SERVER)?.addOnSuccessListener { querySnapshot ->
+            val bookmarks = querySnapshot.toBookmarks()
+            onResult(bookmarks)
+            }?.addOnFailureListener {
+//            Log.d("sync", "error: ${it.message}")
+        }
+    }
+
+    override fun syncFoldersFromFirebase(
+        onError: (Throwable) -> Unit,
+        onResult: (List<BookmarkFolder>) -> Unit,
+    ) {
+        foldersRef.orderBy("parentId", Query.Direction.ASCENDING).get(Source.SERVER)
+            .addOnSuccessListener { querySnapshot ->
+                val folders = querySnapshot.toFolders()
+                onResult(folders)
+            }
     }
 
     override suspend fun syncFoldersToCloud(folders: List<BookmarkFolder>) {
@@ -209,6 +238,17 @@ fun QuerySnapshot.toBookmarks(): List<Bookmark> {
             favIcon = data?.get("favIcon").toString(),
             folderId = data?.get("folderId").toString().toLong(),
             creationDate = data?.get("creationDate").toString().toLong(),
+        )
+    }
+}
+
+fun QuerySnapshot.toFolders(): List<BookmarkFolder> {
+    return this.documents.map {
+        val data = it.data
+        BookmarkFolder(
+            id = it.id.toLong(),
+            name = data?.get("name").toString(),
+            parentId = if (data?.get("parentId") == null) null else data.get("parentId").toString().toLong()
         )
     }
 }

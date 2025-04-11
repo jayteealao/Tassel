@@ -14,9 +14,19 @@ interface StorageService {
     )
 
     fun removeListener()
-    suspend fun syncBookmarksToStorage(
+    suspend fun syncBookmarksToFirebase(
         getLocalBookmark: (Long) -> List<Bookmark>,
         onError: (Throwable) -> Unit
+    )
+
+    fun syncBookmarksFromFirebase(
+        onError: (Throwable) -> Unit = {},
+        onResult: (List<Bookmark>) -> Unit,
+    )
+
+    fun syncFoldersFromFirebase(
+        onError: (Throwable) -> Unit = {},
+        onResult: (List<BookmarkFolder>) -> Unit,
     )
 
     suspend fun syncFoldersToCloud(
