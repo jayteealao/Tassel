@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
@@ -50,6 +51,7 @@ fun BookmarkCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .wrapContentHeight()
             .background(Color.White)
             .combinedClickable(
                 onClick = onClick,
@@ -86,6 +88,7 @@ fun BookmarkCard(
                         modifier = Modifier
                             .padding(4.dp)
                             .fillMaxWidth()
+                            .wrapContentHeight()
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,

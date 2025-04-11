@@ -65,7 +65,7 @@ class BookmarkRepository @Inject constructor(
 
         val job = SupervisorJob()
         scope.launch(Dispatchers.IO + job) {
-            storageService.syncBookmarksToStorage(
+            storageService.syncBookmarksToFirebase(
                 getLocalBookmark = {
                     getLastSavedBookmark(it)
                 }
