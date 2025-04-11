@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
@@ -39,7 +38,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import compose.icons.FontAwesomeIcons
 import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.FolderPlus
@@ -57,7 +55,6 @@ import xyz.graphitenerd.tassel.ui.SwipeBox
 @Composable
 fun FolderScreen(
     VM: FolderViewModel,
-    navController: NavController
 ) {
     val lazyListState = rememberLazyListState()
     val folders by VM.folders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
@@ -167,34 +164,65 @@ fun FolderScreen(
                     }
                 }
             }
-            items(folders, key = { it.id }) {
+
+            items(
+                count = folders.size,
+                key = { folders[it].id },
+                contentType = { "folder" }
+            ) { index ->
+                val folder = folders[index]
                 FolderCard(
-                    folder = it,
+                    folder = folder,
                     onClick = {
-                        scope.launch(Dispatchers.IO) {
-                            VM.refreshScreen(it.id)
+                        scope.launch(Dispatchers.Main) {
+                            VM.refreshScreen(folder.id)
                             lazyListState.animateScrollToItem(0)
                         }
                     }
                 )
             }
-            items(bookmarks, key = { "bookmark${it.id}" }) {
+
+            items(
+                count = bookmarks.size,
+                key = { bookmarks[it].id },
+                contentType = { "bookmark" }
+            ) { index ->
+                val bookmark = bookmarks[index]
                 SwipeBox(
                     modifier = Modifier,
                     onDelete = {
                         scope.launch(Dispatchers.IO) {
-                            VM.deleteBookmark(it)
+                            VM.deleteBookmark(bookmark)
                         }
                     },
                     onEdit = {}
                 ) {
-                    BookmarkCard(bookmark = it)
+                    BookmarkCard(bookmark = bookmark)
                     Divider(
                         modifier = Modifier.align(Alignment.BottomCenter),
                         color = Color.Black,
                     )
                 }
+
             }
+
+//            items(bookmarks, key = { "bookmark${it.id}" }) {
+//                SwipeBox(
+//                    modifier = Modifier,
+//                    onDelete = {
+//                        scope.launch(Dispatchers.IO) {
+//                            VM.deleteBookmark(it)
+//                        }
+//                    },
+//                    onEdit = {}
+//                ) {
+//                    BookmarkCard(bookmark = it)
+//                    Divider(
+//                        modifier = Modifier.align(Alignment.BottomCenter),
+//                        color = Color.Black,
+//                    )
+//                }
+//            }
         }
     }
 }
