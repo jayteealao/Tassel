@@ -44,6 +44,8 @@ class BookmarkViewModel @Inject constructor(
 
     private var _screenState = MutableStateFlow(ScreenState.EMPTY)
     private var _showSearchResults = MutableStateFlow(false)
+    private var _searchQuery = MutableStateFlow("")
+    private var _searchResults = MutableStateFlow<List<Bookmark>>(emptyList())
 
     init {
         viewModelScope.launch {
@@ -166,12 +168,6 @@ class BookmarkViewModel @Inject constructor(
             storageService.setUserId(accountService.getUserId())
         }
     }
-
-    private var _searchQuery = MutableStateFlow("")
-//    val searchQuery: Flow<String> = _searchQuery
-
-    private var _searchResults = MutableStateFlow<List<Bookmark>>(emptyList())
-//    val searchResults: Flow<List<Bookmark>?> = _searchResults
 
     private fun searchBookmarks() {
         viewModelScope.launch(Dispatchers.IO) {
