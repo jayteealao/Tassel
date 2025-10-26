@@ -33,6 +33,12 @@ class AuthViewModel @Inject constructor(
 
     fun hasUser() = accountService.hasUser()
 
+    fun signOut() {
+        accountService.signOut()
+        _user.value = null
+        _userDetails.value = null
+    }
+
     fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
         val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
