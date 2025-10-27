@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import xyz.graphitenerd.tassel.R
 import xyz.graphitenerd.tassel.service.AccountService
+import xyz.graphitenerd.tassel.service.StorageService
 import xyz.graphitenerd.tassel.service.UserDetails
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val accountService: AccountService,
+    private val storageService: StorageService,
 ): ViewModel() {
 
 //    lateinit var user: FirebaseUser
@@ -33,6 +35,12 @@ class AuthViewModel @Inject constructor(
 
     fun hasUser() = accountService.hasUser()
 
+    fun signOut() {
+        accountService.signOut()
+        _user.value = null
+        _userDetails.value = null
+    }
+
     fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
         val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
@@ -41,6 +49,9 @@ class AuthViewModel @Inject constructor(
             if (firebaseUser != null) {
                 _user.value = firebaseUser
                 _userDetails.value = accountService.getUserDetails()
+
+                // Initialize Firebase sync with the authenticated user's ID
+                initializeFirebaseSync()
             }
             // ...
         } else {
@@ -48,6 +59,20 @@ class AuthViewModel @Inject constructor(
             // sign-in flow using the back button. Otherwise check
             // response.getError().getErrorCode() and handle the error.
             // ...
+        }
+    }
+
+    /**
+     * Initializes Firebase sync by setting the user ID in StorageService.
+     * This ensures that bookmarks and folders sync to the correct user's
+     * Firestore collection after successful authentication.
+     */
+    private fun initializeFirebaseSync() {
+        if (accountService.hasUser() && !storageService.isUserSet()) {
+            val userId = accountService.getUserId()
+            if (userId.isNotEmpty()) {
+                storageService.setUserId(userId)
+            }
         }
     }
 

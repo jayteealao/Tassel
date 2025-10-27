@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.paging.compose.collectAsLazyPagingItems
+import xyz.graphitenerd.tassel.screens.auth.LoginScreen
 import xyz.graphitenerd.tassel.screens.create.AddBookmarkScreen
 import xyz.graphitenerd.tassel.screens.create.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.screens.folders.FolderScreen
@@ -25,6 +26,7 @@ import xyz.graphitenerd.tassel.screens.settings.SettingsScreen
 fun TasselNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    startDestination: String = Screens.RECENTS.name,
     addNewBookmarkViewModel: NewBookmarkViewModel = hiltViewModel(),
     bookmarkViewModel: BookmarkViewModel = hiltViewModel(),
     folderViewModel: FolderViewModel = hiltViewModel(),
@@ -42,8 +44,18 @@ fun TasselNavHost(
     NavHost(
         modifier = modifier.fillMaxSize(),
         navController = navController,
-        startDestination = Screens.RECENTS.name
+        startDestination = startDestination
     ) {
+        composable(Screens.LOGIN.name) {
+            LoginScreen(
+                authViewModel = authViewModel,
+                onSignInSuccess = {
+                    navController.navigate(Screens.RECENTS.name) {
+                        popUpTo(Screens.LOGIN.name) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Screens.RECENTS.name) {
             RecentScreen(
                 bookmarks = bookmarks,
@@ -82,12 +94,18 @@ fun TasselNavHost(
         composable(Screens.SETTINGS.name) {
             SettingsScreen(
                 authViewModel = authViewModel,
+                onSignOut = {
+                    navController.navigate(Screens.LOGIN.name) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
     }
 }
 
 enum class Screens {
+    LOGIN,
     RECENTS,
     FOLDERS,
     ADDNEW,
