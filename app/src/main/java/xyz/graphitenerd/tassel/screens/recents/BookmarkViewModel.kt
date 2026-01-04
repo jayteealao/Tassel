@@ -142,6 +142,25 @@ class BookmarkViewModel @Inject constructor(
         }
     }
 
+    init {
+        if (accountService.hasUser()) {
+            viewModelScope.launch(Dispatchers.IO) {
+                storageService.syncFoldersFromFirebase {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        folderRepository.updateFolders(it)
+                        Log.d("sync", "count folders: ${it.size}")
+                    }
+                }
+                storageService.syncBookmarksFromFirebase {
+                    viewModelScope.launch(Dispatchers.IO) {
+                        addBookmarks(it)
+                        Log.d("sync", "count bookmarks: ${it.size}")
+                    }
+                }
+            }
+        }
+    }
+
     fun addBookmarks(bookmarks: List<Bookmark>) {
         viewModelScope.launch(Dispatchers.IO) {
             bookmarkRepository.addBookmarks(bookmarks)
