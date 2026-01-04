@@ -30,7 +30,16 @@ data class Bookmark(
     @ColumnInfo(name = "creation_date")
     var creationDate: Long = System.currentTimeMillis(),
     @ColumnInfo(defaultValue = true.toString())
-    var synced: Boolean = false
+    var synced: Boolean = false,
+    // Smart Collections fields
+    @ColumnInfo(defaultValue = "0")
+    var isRead: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    var isFavorite: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    var openCount: Int = 0,
+    @ColumnInfo(name = "last_opened")
+    var lastOpened: Long? = null
 ) : BookmarkMarker
 
 object EmptyBookmark : BookmarkMarker

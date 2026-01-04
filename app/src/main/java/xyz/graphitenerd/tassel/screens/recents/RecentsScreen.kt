@@ -63,6 +63,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.SmartCollection
+import xyz.graphitenerd.tassel.model.SmartCollectionWithCount
 import xyz.graphitenerd.tassel.screens.Screens
 import xyz.graphitenerd.tassel.screens.folders.FolderSelectionState
 import xyz.graphitenerd.tassel.ui.BookmarkCard
@@ -71,6 +73,7 @@ import xyz.graphitenerd.tassel.ui.FileTree
 import xyz.graphitenerd.tassel.ui.FolderSelectorCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
 import xyz.graphitenerd.tassel.ui.SearchContent
+import xyz.graphitenerd.tassel.ui.SmartCollectionsSection
 import xyz.graphitenerd.tassel.ui.SwipeBox
 import xyz.graphitenerd.tassel.ui.TasselSearchBar
 
@@ -81,6 +84,9 @@ fun RecentScreen(
     recentScreenState: RecentScreenState,
     folderSelectionState: FolderSelectionState,
     searchScreenState: SearchScreenState = SearchScreenState(),
+    smartCollections: List<SmartCollectionWithCount> = emptyList(),
+    onCollectionClick: (SmartCollection) -> Unit = {},
+    onBookmarkOpen: (Bookmark) -> Unit = {},
     scaffoldState: ScaffoldState = rememberScaffoldState(),
     navController: NavController, //TODO: remove navcontroller
     onNavigateToAddNew: () -> Unit = {}, //TODO: change to onNavigate with a nullable Long if null, navigate to add new
@@ -271,7 +277,7 @@ fun RecentScreenContent(
     ) { targetState ->
         when (targetState) {
             ScreenState.EMPTY -> EmptyBookmarkFolder()
-            ScreenState.RECENT -> RecentBookmarks(bookmarks, deleteAction, recentScreenState, folderSelectionState, searchScreenState)
+            ScreenState.RECENT -> RecentBookmarks(bookmarks, deleteAction, recentScreenState, folderSelectionState, searchScreenState, smartCollections, onCollectionClick, onBookmarkOpen)
             ScreenState.SEARCH -> SearchContent(modifier = Modifier.fillMaxSize(), searchScreenState = searchScreenState, bookmarks = searchScreenState.searchResults)
         }
     }
@@ -284,7 +290,10 @@ private fun RecentBookmarks(
     deleteAction: (Bookmark) -> Unit = {},
     recentScreenState: RecentScreenState,
     folderSelectionState: FolderSelectionState,
-    searchScreenState: SearchScreenState
+    searchScreenState: SearchScreenState,
+    smartCollections: List<SmartCollectionWithCount> = emptyList(),
+    onCollectionClick: (SmartCollection) -> Unit = {},
+    onBookmarkOpen: (Bookmark) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -303,6 +312,17 @@ private fun RecentBookmarks(
             Divider(
                 color = Color.Black,
             )
+        }
+
+        // Smart Collections Section
+        if (smartCollections.isNotEmpty()) {
+            item {
+                SmartCollectionsSection(
+                    collections = smartCollections,
+                    onCollectionClick = onCollectionClick,
+                    compactMode = true
+                )
+            }
         }
 
         stickyHeader(
@@ -395,6 +415,7 @@ private fun RecentBookmarks(
                             if (recentScreenState.isSelectionMode) {
                                 recentScreenState.onSelectBookmark(bookmark.id, isSelected)
                             } else {
+                                onBookmarkOpen(bookmark)
                                 val intent = Intent(Intent.ACTION_VIEW).apply {
                                     data = Uri.parse(bookmark.rawUrl)
                                 }
