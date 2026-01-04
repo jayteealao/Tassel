@@ -5,20 +5,15 @@ import android.os.Build
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -31,9 +26,9 @@ import org.mockito.kotlin.verify
 import org.robolectric.annotation.Config
 import xyz.graphitenerd.tassel.data.AppDatabase
 import xyz.graphitenerd.tassel.data.BookmarkDao
-import xyz.graphitenerd.tassel.data.BookmarkRepository
-import xyz.graphitenerd.tassel.data.IBookmarkRepository
+import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
+import xyz.graphitenerd.tassel.data.repository.IBookmarkRepository
 import xyz.graphitenerd.tassel.model.BookmarkFolder
 import xyz.graphitenerd.tassel.screens.recents.BookmarkViewModel
 import xyz.graphitenerd.tassel.service.AccountServiceImpl
@@ -87,7 +82,7 @@ open class BookmarkViewModelTest {
             folderRepository = folderRepository,
             storageService = storageService,
             accountService = accountService,
-            coroutineDispatcher = testDispatcher
+//            coroutineDispatcher = testDispatcher
         )
 
         runTest {

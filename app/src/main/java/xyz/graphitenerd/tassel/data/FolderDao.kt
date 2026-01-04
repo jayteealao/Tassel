@@ -45,6 +45,8 @@ interface FolderDao {
     )
     fun getFoldersAndBookmarksB(): Map<BookmarkFolder, List<Bookmark>>
 
+//    fun foldersPagingSource(): PagingSource<Int, BookmarkFolder>
+
     data class folderWithContents(
         val id: Long,
         val name: String,

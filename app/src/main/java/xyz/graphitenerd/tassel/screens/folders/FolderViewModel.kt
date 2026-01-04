@@ -36,6 +36,9 @@ class FolderViewModel @Inject constructor(
     val folders: StateFlow<List<BookmarkFolder>>
         get() = _folders.asStateFlow()
 
+//    var folderPagingData = folderRepository.foldersPagingData()
+//        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PagingData.empty())
+
     var currentFolderId: Long = 1
         private set
 

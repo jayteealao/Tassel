@@ -10,6 +10,6 @@ interface IFolderRepository {
     fun updateFolders(folders: List<BookmarkFolder>)
     fun getFolders(): List<BookmarkFolder>
     fun syncFoldersToCloud()
-
+//    fun foldersPagingData(): Flow<PagingData<BookmarkFolder>>
     suspend fun saveAndSyncFolder(folder: BookmarkFolder)
 }
