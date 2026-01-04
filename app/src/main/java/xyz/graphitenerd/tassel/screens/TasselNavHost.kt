@@ -13,6 +13,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.paging.compose.collectAsLazyPagingItems
+import xyz.graphitenerd.tassel.model.SmartCollection
+import xyz.graphitenerd.tassel.screens.collections.SmartCollectionScreen
 import xyz.graphitenerd.tassel.screens.create.AddBookmarkScreen
 import xyz.graphitenerd.tassel.screens.create.NewBookmarkViewModel
 import xyz.graphitenerd.tassel.screens.folders.FolderScreen
@@ -38,6 +40,8 @@ fun TasselNavHost(
     val bookmarks = bookmarkViewModel.bookmarksPagingData.collectAsLazyPagingItems()
     val searchScreenState = bookmarkViewModel.searchScreenStateFlow.collectAsStateWithLifecycle(
         LocalLifecycleOwner.current)
+    val smartCollections = bookmarkViewModel.smartCollectionsWithCounts.collectAsStateWithLifecycle(
+        LocalLifecycleOwner.current)
 
     NavHost(
         modifier = modifier.fillMaxSize(),
@@ -50,6 +54,13 @@ fun TasselNavHost(
                 recentScreenState = recentScreenState.value,
                 folderSelectionState = folderSelectionState.value,
                 searchScreenState = searchScreenState.value,
+                smartCollections = smartCollections.value,
+                onCollectionClick = { collection ->
+                    navController.navigate("${Screens.COLLECTION.name}/${collection.id}")
+                },
+                onBookmarkOpen = { bookmark ->
+                    bookmarkViewModel.trackBookmarkOpen(bookmark)
+                },
                 navController = navController,
                 onNavigateToAddNew = {
                     navController.navigate(Screens.ADDNEW.name)
@@ -84,6 +95,36 @@ fun TasselNavHost(
                 authViewModel = authViewModel,
             )
         }
+
+        composable(
+            "${Screens.COLLECTION.name}/{collectionId}",
+            arguments = listOf(
+                navArgument("collectionId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val collectionId = backStackEntry.arguments?.getString("collectionId")
+            val collection = SmartCollection.getById(collectionId ?: "")
+
+            collection?.let {
+                val collectionBookmarks = bookmarkViewModel.getSmartCollectionBookmarks(it)
+                    .collectAsLazyPagingItems()
+
+                SmartCollectionScreen(
+                    collection = it,
+                    bookmarks = collectionBookmarks,
+                    recentScreenState = recentScreenState.value,
+                    onBackClick = { navController.popBackStack() },
+                    deleteAction = { bookmark ->
+                        bookmarkViewModel.deleteBookmark(listOf(bookmark.id))
+                    },
+                    onBookmarkOpen = { bookmark ->
+                        bookmarkViewModel.trackBookmarkOpen(bookmark)
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -91,5 +132,6 @@ enum class Screens {
     RECENTS,
     FOLDERS,
     ADDNEW,
-    SETTINGS
+    SETTINGS,
+    COLLECTION
 }

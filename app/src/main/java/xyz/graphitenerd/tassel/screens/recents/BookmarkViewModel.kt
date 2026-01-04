@@ -18,6 +18,8 @@ import xyz.graphitenerd.tassel.data.BookmarkId
 import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.SmartCollection
+import xyz.graphitenerd.tassel.model.SmartCollectionWithCount
 import xyz.graphitenerd.tassel.service.AccountService
 import xyz.graphitenerd.tassel.service.StorageService
 import javax.inject.Inject
@@ -202,6 +204,34 @@ class BookmarkViewModel @Inject constructor(
         searchBookmarks = ::searchBookmarks
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchScreenState())
+
+    // Smart Collections
+
+    val smartCollectionsWithCounts: StateFlow<List<SmartCollectionWithCount>> =
+        bookmarkRepository.getSmartCollectionsWithCounts()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    fun getSmartCollectionBookmarks(collection: SmartCollection): StateFlow<PagingData<Bookmark>> {
+        return bookmarkRepository.getSmartCollectionBookmarks(collection)
+            .cachedIn(viewModelScope)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PagingData.empty())
+    }
+
+    fun toggleReadStatus(bookmark: Bookmark) {
+        bookmarkRepository.updateReadStatus(bookmark.rawUrl, !bookmark.isRead)
+    }
+
+    fun toggleFavoriteStatus(bookmark: Bookmark) {
+        bookmarkRepository.updateFavoriteStatus(bookmark.rawUrl, !bookmark.isFavorite)
+    }
+
+    fun trackBookmarkOpen(bookmark: Bookmark) {
+        bookmarkRepository.incrementOpenCount(bookmark.rawUrl)
+    }
 
 }
 

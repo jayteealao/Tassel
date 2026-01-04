@@ -4,6 +4,8 @@ import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import xyz.graphitenerd.tassel.data.BookmarkId
 import xyz.graphitenerd.tassel.model.Bookmark
+import xyz.graphitenerd.tassel.model.SmartCollection
+import xyz.graphitenerd.tassel.model.SmartCollectionWithCount
 
 interface IBookmarkRepository {
     fun getAllBookmarks(): Flow<List<Bookmark>>
@@ -23,4 +25,12 @@ interface IBookmarkRepository {
     fun deleteBookmark(bookmarks: List<Bookmark>)
     fun deleteBookmark(bookmarkIds: Array<BookmarkId>)
     fun addBookmarks(bookmarks: List<Bookmark>)
+
+    // Smart Collections
+    fun getSmartCollectionBookmarks(collection: SmartCollection): Flow<PagingData<Bookmark>>
+    fun getSmartCollectionCount(collection: SmartCollection): Flow<Int>
+    fun getSmartCollectionsWithCounts(): Flow<List<SmartCollectionWithCount>>
+    fun updateReadStatus(url: String, isRead: Boolean)
+    fun updateFavoriteStatus(url: String, isFavorite: Boolean)
+    fun incrementOpenCount(url: String, timestamp: Long = System.currentTimeMillis())
 }
