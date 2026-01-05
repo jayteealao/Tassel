@@ -22,3 +22,5 @@ local.properties
 /act.secrets
 *.log
 
+
+.idea/
