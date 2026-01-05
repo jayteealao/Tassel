@@ -22,5 +22,6 @@ local.properties
 /act.secrets
 *.log
 
+
 .idea/
 app/tmp/
