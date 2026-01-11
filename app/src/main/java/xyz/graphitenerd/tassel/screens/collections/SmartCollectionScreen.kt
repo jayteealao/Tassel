@@ -102,22 +102,17 @@ fun SmartCollectionScreen(
                     val bookmark = bookmarks[index]
                     bookmark?.let {
                         SwipeBox(
-                            onSwipe = {
+                            onDelete = {
                                 deleteAction(it)
-                            }
+                            },
+                            onEdit = {}
                         ) {
                             BookmarkCard(
                                 bookmark = it,
-                                showCheckBox = recentScreenState.isSelectionMode,
+                                selectionEnabled = recentScreenState.isSelectionMode,
                                 isSelected = recentScreenState.selectedBookmarks.contains(it.id),
-                                onCheckBoxChange = {
-                                    recentScreenState.onSelectBookmark(
-                                        it.id,
-                                        recentScreenState.selectedBookmarks.contains(it.id)
-                                    )
-                                },
-                                onCardLongClick = { recentScreenState.toggleSelectionMode() },
-                                onCardClick = {
+                                onLongPress = { recentScreenState.toggleSelectionMode() },
+                                onClick = {
                                     if (recentScreenState.isSelectionMode) {
                                         recentScreenState.onSelectBookmark(
                                             it.id,

@@ -1,7 +1,6 @@
 package xyz.graphitenerd.tassel.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,18 +9,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -130,28 +122,6 @@ fun TasselSearchBar(searchScreenState: SearchScreenState = SearchScreenState()) 
         singleLine = true
 
     )
-    
-//    Box( modifier = Modifier
-//        .fillMaxSize()
-//        .semantics { isTraversalGroup = true } ) {
-//        SearchBar(
-//            modifier = Modifier
-//                .align(Alignment.TopCenter)
-//                .semantics { traversalIndex = 0f },
-//            inputField = {
-//                SearchBarDefaults.InputField(
-//                    query = searchScreenState.searchQuery,
-//                    onQueryChange = { searchScreenState.onQueryChange(it) },
-//                    onSearch = { searchScreenState.onExpandedChange(false) },
-//                    expanded = searchScreenState.isSearchActive,
-//                    onExpandedChange = { searchScreenState.onExpandedChange(it) },
-//                    placeholder = { Text("Search") },
-//                )
-//            },
-//            expanded = searchScreenState.isSearchActive,
-//            onExpandedChange = { searchScreenState.onExpandedChange(it) }
-//        ) { }
-//    }
 }
 
 @Composable
@@ -161,40 +131,36 @@ fun SearchContent(modifier: Modifier = Modifier, searchScreenState: SearchScreen
         contentPadding = PaddingValues(20.dp, 0.dp, 20.dp, 78.dp)
         ) {
         item {
-            Column { // did this fix search bar not showing up?
-                Divider(
-                    color = Color.Black
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                TasselSearchBar(searchScreenState) //TODO: shared content animation
-                Spacer(modifier = Modifier.height(20.dp))
-                Divider(
-                    color = Color.Black
-                )
-            }
+            Divider(
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            TasselSearchBar(searchScreenState) //TODO: shared content animation
+            Spacer(modifier = Modifier.height(20.dp))
+            Divider(
+                color = Color.Black
+            )
         }
-        itemsIndexed(
+        items(
             items=bookmarks,
-            key = { i, bookmark -> bookmark.id }
-        ) { i, bookmark ->
-            Column { // did this fix divider not showing up?
-                BookmarkCard(bookmark = bookmark)
-                Divider(
-                    color = Color.Black,
-                )
-            }
+            key = { it.id }
+        ) {
+            BookmarkCard(bookmark = it)
+            Divider(
+                color = Color.Black,
+            )
         }
     }
 }
 
 @Preview
 @Composable
-fun PreviewAppBar() {
+fun previewAppBar() {
     HomeAppBar(onClickActionButton = {})
 }
 
 @Preview
 @Composable
-fun PreviewSearchBar() {
+fun previewSearchBar() {
     TasselSearchBar()
 }
