@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.DrawerValue
+import androidx.compose.material.ModalDrawer
+import androidx.compose.material.rememberDrawerState
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,9 +24,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.screens.Screens
 import xyz.graphitenerd.tassel.screens.TasselNavHost
 import xyz.graphitenerd.tassel.ui.BottomNavButton
+import xyz.graphitenerd.tassel.ui.NavDrawerContent
 import xyz.graphitenerd.tassel.ui.theme.TasselTheme
 
 @AndroidEntryPoint
@@ -37,6 +43,8 @@ class MainActivity : ComponentActivity() {
             val systemUiController = rememberSystemUiController()
             val useDarkIcons = !isSystemInDarkTheme()
             val navController = rememberNavController()
+            val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+            val scope = rememberCoroutineScope()
 
             DisposableEffect(systemUiController, useDarkIcons) {
                 systemUiController.setSystemBarsColor(
@@ -46,33 +54,53 @@ class MainActivity : ComponentActivity() {
                 onDispose { }
             }
             TasselTheme {
-
-                Box(
-                    modifier = Modifier
-                        .padding(0.dp)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.BottomCenter
+                ModalDrawer(
+                    drawerState = drawerState,
+                    gesturesEnabled = drawerState.isOpen,
+                    drawerContent = {
+                        NavDrawerContent(
+                            onSettingsClick = {
+                                navController.navigate(Screens.SETTINGS.name)
+                            },
+                            onAboutClick = {
+                                // TODO: Navigate to About screen
+                            },
+                            onCloseDrawer = {
+                                scope.launch { drawerState.close() }
+                            }
+                        )
+                    }
                 ) {
-
-                    TasselNavHost(
-                        navController = navController
-                    )
-
-                    AnimatedVisibility(
-                        visible = navController
-                            .currentBackStackEntryAsState()
-                            .value?.destination?.route?.startsWith(Screens.ADDNEW.name)?.not() ?: false
+                    Box(
+                        modifier = Modifier
+                            .padding(0.dp)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.BottomCenter
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .background(color = Color(0xff, 0xff, 0xff, 128))
-                                .fillMaxWidth()
-                                .height(72.dp),
-                            contentAlignment = Alignment.TopCenter
+
+                        TasselNavHost(
+                            navController = navController,
+                            onOpenDrawer = {
+                                scope.launch { drawerState.open() }
+                            }
+                        )
+
+                        AnimatedVisibility(
+                            visible = navController
+                                .currentBackStackEntryAsState()
+                                .value?.destination?.route?.startsWith(Screens.ADDNEW.name)?.not() ?: false
                         ) {
-                            BottomNavButton(
-                                navController
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .background(color = Color(0xff, 0xff, 0xff, 128))
+                                    .fillMaxWidth()
+                                    .height(72.dp),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                BottomNavButton(
+                                    navController
+                                )
+                            }
                         }
                     }
                 }

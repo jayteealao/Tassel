@@ -21,6 +21,7 @@ import xyz.graphitenerd.tassel.screens.folders.FolderScreen
 import xyz.graphitenerd.tassel.screens.folders.FolderViewModel
 import xyz.graphitenerd.tassel.screens.recents.BookmarkViewModel
 import xyz.graphitenerd.tassel.screens.recents.RecentScreen
+import xyz.graphitenerd.tassel.screens.login.LoginScreen
 import xyz.graphitenerd.tassel.screens.settings.SettingsScreen
 
 @Composable
@@ -30,7 +31,8 @@ fun TasselNavHost(
     addNewBookmarkViewModel: NewBookmarkViewModel = hiltViewModel(),
     bookmarkViewModel: BookmarkViewModel = hiltViewModel(),
     folderViewModel: FolderViewModel = hiltViewModel(),
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    onOpenDrawer: () -> Unit = {}
 ) {
     val recentScreenState = bookmarkViewModel.recentScreenStateFlow.collectAsStateWithLifecycle(
         LocalLifecycleOwner.current)
@@ -61,7 +63,7 @@ fun TasselNavHost(
                 onBookmarkOpen = { bookmark ->
                     bookmarkViewModel.trackBookmarkOpen(bookmark)
                 },
-                navController = navController,
+                onOpenDrawer = onOpenDrawer,
                 onNavigateToAddNew = {
                     navController.navigate(Screens.ADDNEW.name)
                 }
@@ -93,6 +95,20 @@ fun TasselNavHost(
         composable(Screens.SETTINGS.name) {
             SettingsScreen(
                 authViewModel = authViewModel,
+                onSignInClick = {
+                    navController.navigate(Screens.LOGIN.name)
+                },
+                onBackClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screens.LOGIN.name) {
+            LoginScreen(
+                authViewModel = authViewModel,
+                onBackClick = { navController.popBackStack() },
+                onSignInSuccess = { navController.popBackStack() }
             )
         }
 
@@ -133,5 +149,6 @@ enum class Screens {
     FOLDERS,
     ADDNEW,
     SETTINGS,
+    LOGIN,
     COLLECTION
 }
