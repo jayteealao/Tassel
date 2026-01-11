@@ -1,7 +1,13 @@
 package xyz.graphitenerd.tassel.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,11 +18,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +56,6 @@ fun BookmarkCard(
     onClick: () -> Unit = {},
     onLongPress: () -> Unit = {}
 ) {
-//    Log.d("checkvalue", "in bookmark card")
-    val context = LocalContext.current
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -60,83 +68,122 @@ fun BookmarkCard(
         elevation = 0.dp,
         shape = RectangleShape,
     ) {
-        val backgroundColor = if (isSelected) Color.LightGray else Color.White
         Box(
             modifier = Modifier
-                .background(backgroundColor)
-                .padding(0.dp, 20.dp)
+                .background(Color.White)
+                .padding(vertical = 12.dp, horizontal = 8.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(bookmark.imageUrl)
-                            .size(600)
-                            .crossfade(true)
-                            .build(),
-                        placeholder = painterResource(R.drawable.placeholder),
-                        fallback = painterResource(R.drawable.placeholder),
-                        contentDescription = "favicon",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .clip(RectangleShape)
-                            .size(72.dp)
-                            .padding(4.dp)
-
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Selection checkbox - visible only in selection mode
+                AnimatedVisibility(
+                    visible = selectionEnabled,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut()
+                ) {
+                    SelectionCheckbox(
+                        isSelected = isSelected,
+                        modifier = Modifier.padding(end = 8.dp)
                     )
-                    Column(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .fillMaxWidth()
-                            .wrapContentHeight()
+                }
+
+                // Bookmark thumbnail
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(bookmark.imageUrl)
+                        .size(600)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.placeholder),
+                    fallback = painterResource(R.drawable.placeholder),
+                    contentDescription = "thumbnail",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .clip(RectangleShape)
+                        .size(72.dp)
+                        .padding(4.dp)
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // Content
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .wrapContentHeight()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            bookmark.title?.let {
-                                Text(
-                                    text = it,
-                                    maxLines = 2,
-                                    modifier = Modifier.weight(9f),
-                                    //                        modifier = Modifier.fillMaxWidth(0.8f),
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(bookmark.favIcon)
-                                    .size(48)
-                                    .crossfade(true)
-                                    .build(),
-                                placeholder = painterResource(R.drawable.placeholder),
-                                fallback = painterResource(R.drawable.placeholder),
-                                contentDescription = "favicon",
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier
-                                    .clip(RectangleShape)
-                                    .size(24.dp)
-
+                        bookmark.title?.let {
+                            Text(
+                                text = it,
+                                maxLines = 2,
+                                modifier = Modifier.weight(1f),
+                                overflow = TextOverflow.Ellipsis
                             )
-//                            modifier = Modifier.padding(8.dp)
                         }
-
-                        Spacer(Modifier.height(2.dp))
-
-                        Text(
-                            text = bookmark.rawUrl,
-                            style = MaterialTheme.typography.subtitle2,
-                            color = Color.LightGray,
-                            fontSize = 12.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(bookmark.favIcon)
+                                .size(48)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.placeholder),
+                            fallback = painterResource(R.drawable.placeholder),
+                            contentDescription = "favicon",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .clip(RectangleShape)
+                                .size(24.dp)
                         )
                     }
+
+                    Spacer(Modifier.height(2.dp))
+
+                    Text(
+                        text = bookmark.rawUrl,
+                        style = MaterialTheme.typography.subtitle2,
+                        color = Color.LightGray,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-//            Divider(
-//                color = Color.Black,
-//            )
             }
+        }
+    }
+}
+
+@Composable
+private fun SelectionCheckbox(
+    isSelected: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(24.dp)
+            .then(
+                if (isSelected) {
+                    Modifier
+                        .background(Color.Black, CircleShape)
+                } else {
+                    Modifier
+                        .border(2.dp, Color.Black, CircleShape)
+                        .background(Color.White, CircleShape)
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isSelected) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = "Selected",
+                tint = Color.White,
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }

@@ -93,6 +93,7 @@ class BookmarkViewModel @Inject constructor(
         clearSelectedBookmarks = ::clearSelectedBookmarks,
         deleteBookmarks = ::deleteBookmark,
         addBookmarks = ::addBookmarks,
+        selectAllBookmarks = ::selectAllBookmarks,
         screenState = screenState
     ) }.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), RecentScreenState())
@@ -120,6 +121,16 @@ class BookmarkViewModel @Inject constructor(
     private fun clearSelectedBookmarks() {
         _selectedBookmarks.value = emptyList()
         _isSelectionMode.value = false
+    }
+
+    private fun selectAllBookmarks() {
+        viewModelScope.launch {
+            val allIds = bookmarkRepository.getAllBookmarkIds()
+            _selectedBookmarks.value = allIds
+            if (!_isSelectionMode.value) {
+                _isSelectionMode.value = true
+            }
+        }
     }
 
     /**
@@ -239,11 +250,12 @@ data class RecentScreenState(
     val selectedBookmarks: List<Long> = emptyList(),
     val isSelectionMode: Boolean = false,
     val deletedBookmarks: List<Bookmark> = emptyList(),
-    val onSelectBookmark: (Long, Boolean) -> Unit = { _, _ -> }, //if selected remove else add
+    val onSelectBookmark: (Long, Boolean) -> Unit = { _, _ -> },
     val toggleSelectionMode: () -> Unit = {},
     val clearSelectedBookmarks: () -> Unit = {},
     val deleteBookmarks: (List<Long>) -> Unit = {},
     val addBookmarks: (List<Bookmark>) -> Unit = {},
+    val selectAllBookmarks: () -> Unit = {},
     val screenState: ScreenState = ScreenState.EMPTY
 )
 
