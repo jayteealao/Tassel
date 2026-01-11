@@ -135,7 +135,8 @@ fun BottomNavButton(state: ToggleButtonState, onClick: (state: ToggleButtonState
 @Composable
 fun BottomNavButton(controller: NavController) {
 
-    val state by controller.currentBackStackEntryAsState()
+    val navBackStackEntry by controller.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
     Row(modifier = Modifier.wrapContentSize()) {
 
@@ -143,22 +144,28 @@ fun BottomNavButton(controller: NavController) {
             icon = FontAwesomeIcons.Solid.History,
             text = "Recents",
             onClick = {
-                if (controller.currentDestination?.route == Screens.FOLDERS.name) {
-                    controller.navigate(Screens.RECENTS.name)
+                if (currentRoute != Screens.RECENTS.name) {
+                    controller.navigate(Screens.RECENTS.name) {
+                        popUpTo(Screens.RECENTS.name) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             },
-            selected = controller.currentDestination?.route == Screens.RECENTS.name
+            selected = currentRoute == Screens.RECENTS.name
         )
 
         ToggleButton(
             icon = FontAwesomeIcons.Solid.Folder,
             text = "Folders",
             onClick = {
-                if (controller.currentDestination?.route == Screens.RECENTS.name) {
-                    controller.navigate(Screens.FOLDERS.name)
+                if (currentRoute != Screens.FOLDERS.name) {
+                    controller.navigate(Screens.FOLDERS.name) {
+                        popUpTo(Screens.RECENTS.name)
+                        launchSingleTop = true
+                    }
                 }
             },
-            selected = controller.currentDestination?.route == Screens.FOLDERS.name
+            selected = currentRoute == Screens.FOLDERS.name
         )
     }
 }
