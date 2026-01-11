@@ -37,14 +37,6 @@ subprojects {
     apply from: "../buildscripts/ktlint.gradle"
     apply from: "../buildscripts/detekt.gradle"
 
-    repositories {
-        google()
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-
     tasks.withType(KotlinCompile).configureEach {
         kotlinOptions {
             if (project.findProperty("myapp.enableComposeCompilerReports") == "true") {
