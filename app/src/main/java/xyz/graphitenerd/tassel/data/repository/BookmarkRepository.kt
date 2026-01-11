@@ -33,6 +33,10 @@ class BookmarkRepository @Inject constructor(
         return bookmarkDao.getAllBookmarks()
     }
 
+    override suspend fun getAllBookmarkIds(): List<Long> {
+        return bookmarkDao.getAllBookmarkIds()
+    }
+
     override fun searchBookmarks(query: String): List<Bookmark> = bookmarkDao.searchBookmarks(query)
 
     override fun countBookmarks() = bookmarkDao.countBookmarks()
@@ -104,6 +108,31 @@ class BookmarkRepository @Inject constructor(
 
     }
 
+    override fun syncBookmarksFromCloud(onComplete: () -> Unit) {
+        if (!accountService.hasUser()) { 
+            onComplete()
+            return 
+        }
+        
+        if (!storageService.isUserSet()) {
+            storageService.setUserId(accountService.getUserId())
+        }
+        
+        storageService.syncBookmarksFromFirebase(
+            onError = { 
+                onComplete() 
+            },
+            onResult = { bookmarks ->
+                scope.launch(Dispatchers.IO) {
+                    bookmarks.forEach { bookmark ->
+                        bookmarkDao.addBookmark(bookmark.copy(synced = true))
+                    }
+                    onComplete()
+                }
+            }
+        )
+    }
+
     override fun bookmarksPagingData(): Flow<PagingData<Bookmark>> {
         return Pager(
             config = PagingConfig(pageSize = 20),
@@ -119,7 +148,7 @@ class BookmarkRepository @Inject constructor(
                 { bookmarkDao.getUnreadBookmarks() }
             }
             is SmartCollection.RecentlyAdded -> {
-                val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7)
+                val sevenDaysAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(7);
                 { bookmarkDao.getRecentlyAddedBookmarks(sevenDaysAgo) }
             }
             is SmartCollection.Favorites -> {
@@ -132,7 +161,7 @@ class BookmarkRepository @Inject constructor(
                 { bookmarkDao.getVideoBookmarks() }
             }
             is SmartCollection.RecentlyViewed -> {
-                val oneDayAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1)
+                val oneDayAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1);
                 { bookmarkDao.getRecentlyViewedBookmarks(oneDayAgo) }
             }
         }

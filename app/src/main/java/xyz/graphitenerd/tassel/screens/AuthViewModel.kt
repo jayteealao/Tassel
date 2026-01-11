@@ -11,6 +11,8 @@ import io.github.boguszpawlowski.chassis.Field
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import xyz.graphitenerd.tassel.R
+import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
+import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.service.AccountService
 import xyz.graphitenerd.tassel.service.UserDetails
 import javax.inject.Inject
@@ -18,6 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val accountService: AccountService,
+    private val bookmarkRepository: BookmarkRepository,
+    private val folderRepository: FolderRepository,
 ): ViewModel() {
 
 //    lateinit var user: FirebaseUser
@@ -33,6 +37,12 @@ class AuthViewModel @Inject constructor(
 
     fun hasUser() = accountService.hasUser()
 
+    fun signOut() {
+        accountService.signOut()
+        _user.value = null
+        _userDetails.value = null
+    }
+
     fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
         val response = result.idpResponse
         if (result.resultCode == RESULT_OK) {
@@ -41,6 +51,9 @@ class AuthViewModel @Inject constructor(
             if (firebaseUser != null) {
                 _user.value = firebaseUser
                 _userDetails.value = accountService.getUserDetails()
+                // Sync data from Firebase after sign-in
+                bookmarkRepository.syncBookmarksFromCloud()
+                folderRepository.syncFoldersFromCloud()
             }
             // ...
         } else {

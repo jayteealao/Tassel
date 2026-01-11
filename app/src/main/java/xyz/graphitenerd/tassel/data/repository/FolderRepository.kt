@@ -44,6 +44,29 @@ class FolderRepository @Inject constructor(
         }
     }
 
+    override fun syncFoldersFromCloud(onComplete: () -> Unit) {
+        if (!accountService.hasUser()) {
+            onComplete()
+            return
+        }
+
+        if (!storageService.isUserSet()) {
+            storageService.setUserId(accountService.getUserId())
+        }
+
+        storageService.syncFoldersFromFirebase(
+            onError = { onComplete() },
+            onResult = { folders ->
+                scope.launch(Dispatchers.IO) {
+                    folders.forEach { folder ->
+                        folderDao.insertFolder(folder)
+                    }
+                    onComplete()
+                }
+            }
+        )
+    }
+
     override suspend fun saveAndSyncFolder(folder: BookmarkFolder) {
         insertFolder(folder)
         storageService.saveFolder(folder)

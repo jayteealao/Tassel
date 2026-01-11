@@ -9,6 +9,7 @@ import xyz.graphitenerd.tassel.model.SmartCollectionWithCount
 
 interface IBookmarkRepository {
     fun getAllBookmarks(): Flow<List<Bookmark>>
+    suspend fun getAllBookmarkIds(): List<Long>
     fun searchBookmarks(query: String): List<Bookmark>
     fun countBookmarks(): Flow<Int>
     fun addBookmark(bookmark: Bookmark): Long
@@ -21,6 +22,7 @@ interface IBookmarkRepository {
     suspend fun saveBookmarkToCloud(bookmark: Bookmark) //TODO: move sync to service
     suspend fun saveAndSyncBookmark(bookmark: Bookmark)
     suspend fun syncUnsyncedBookmarks()
+    fun syncBookmarksFromCloud(onComplete: () -> Unit = {})
     fun bookmarksPagingData(): Flow<PagingData<Bookmark>>
     fun deleteBookmark(bookmarks: List<Bookmark>)
     fun deleteBookmark(bookmarkIds: Array<BookmarkId>)
