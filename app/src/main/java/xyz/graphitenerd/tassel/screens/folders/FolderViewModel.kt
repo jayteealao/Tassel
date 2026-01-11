@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.Bookmark
@@ -35,9 +36,6 @@ class FolderViewModel @Inject constructor(
 
     val folders: StateFlow<List<BookmarkFolder>>
         get() = _folders.asStateFlow()
-
-//    var folderPagingData = folderRepository.foldersPagingData()
-//        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PagingData.empty())
 
     var currentFolderId: Long = 1
         private set
@@ -157,6 +155,32 @@ class FolderViewModel @Inject constructor(
         }
     }
 
+    private fun createFolderInCurrent(name: String) {
+        if (name.isBlank()) return
+        val currentFolderId = _currentFolderDisplayed.value.folderId
+        val currentFolderName = _currentFolderDisplayed.value.folderName
+        val currentFolderParent = _currentFolderDisplayed.value.parent
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            val newFolder = BookmarkFolder(
+                name = name,
+                parentId = currentFolderId
+            )
+            // Save and wait for completion
+            folderRepository.saveAndSyncFolder(newFolder)
+            
+            // Refresh on main thread after insert completes
+            withContext(Dispatchers.Main) {
+                val freshFileTree = FileTree(
+                    folderName = currentFolderName,
+                    folderId = currentFolderId,
+                    parent = currentFolderParent
+                )
+                refreshCurrentFolder(freshFileTree)
+            }
+        }
+    }
+
      val folderSelectionStateFlow: StateFlow<FolderSelectionState> = combine(
         currentFolderDisplayed,
         selectedFolder,
@@ -168,17 +192,19 @@ class FolderViewModel @Inject constructor(
         toggleFolderSelection = { toggleFolderSelection() },
         onClick = ::refreshCurrentFolder,
         onFolderSelected = ::selectFolder,
-        updateBookmarkFolders = ::updateBookmarkFolders
+        updateBookmarkFolders = ::updateBookmarkFolders,
+        createFolder = ::createFolderInCurrent
     ) }.stateIn(
         viewModelScope, SharingStarted.WhileSubscribed(5000), FolderSelectionState())
 }
 
 data class FolderSelectionState(
-    val currentFolder: FileTree = FileTree(), //current file tree should be passed down
+    val currentFolder: FileTree = FileTree(),
     val selectedFolder: FileTree? = null,
     val showFolderSelector: Boolean = false,
     val toggleFolderSelection: () -> Unit = {},
-    val onClick: (FileTree) -> Unit = {}, // file tree should be updated here and children fetched
+    val onClick: (FileTree) -> Unit = {},
     val onFolderSelected: (FileTree) -> Unit = {},
-    val updateBookmarkFolders: (List<Long>) -> Unit = {}
+    val updateBookmarkFolders: (List<Long>) -> Unit = {},
+    val createFolder: (String) -> Unit = {}
 )
