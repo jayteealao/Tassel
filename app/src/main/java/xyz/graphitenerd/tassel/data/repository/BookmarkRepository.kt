@@ -61,6 +61,8 @@ class BookmarkRepository @Inject constructor(
 
     override fun getBookmarksByFolders(id: Long) = bookmarkDao.getBookmarksByFolder(id)
 
+    override fun getBookmarksByFolderId(folderId: Long) = bookmarkDao.getBooksByFolderId(folderId)
+
     init {
         if (accountService.hasUser() and !storageService.isUserSet()) {
 //            Log.d("foldervm", "user will be set")

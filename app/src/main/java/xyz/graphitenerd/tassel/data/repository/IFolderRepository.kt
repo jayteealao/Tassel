@@ -8,6 +8,7 @@ interface IFolderRepository {
     fun getFolderByName(name: String): BookmarkFolder
     fun insertFolder(folder: BookmarkFolder)
     fun updateFolders(folders: List<BookmarkFolder>)
+    fun deleteFolder(folder: BookmarkFolder)
     fun getFolders(): List<BookmarkFolder>
     fun syncFoldersToCloud()
     fun syncFoldersFromCloud(onComplete: () -> Unit = {})

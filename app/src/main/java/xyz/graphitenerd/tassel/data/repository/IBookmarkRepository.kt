@@ -18,6 +18,7 @@ interface IBookmarkRepository {
     fun getBookmarksById(ids: List<Long>): List<Bookmark>
     fun getLastSavedBookmark(time: Long): List<Bookmark>
     fun getBookmarksByFolders(id: Long): Flow<List<Bookmark>>
+    fun getBookmarksByFolderId(folderId: Long): List<Bookmark>
     fun syncBookmarksToCloud()
     suspend fun saveBookmarkToCloud(bookmark: Bookmark) //TODO: move sync to service
     suspend fun saveAndSyncBookmark(bookmark: Bookmark)

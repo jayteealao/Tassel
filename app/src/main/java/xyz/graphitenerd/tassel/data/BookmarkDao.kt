@@ -64,6 +64,9 @@ interface BookmarkDao {
     @Query("SELECT * FROM bookmark WHERE folderId LIKE :folderId")
     fun getBookmarksByFolder(folderId: Long): Flow<List<Bookmark>>
 
+    @Query("SELECT * FROM bookmark WHERE folderId = :folderId")
+    fun getBookmarksByFolderId(folderId: Long): List<Bookmark>
+
     @Query("SELECT count(*) FROM bookmark")
     fun countBookmarks(): Flow<Int>
 

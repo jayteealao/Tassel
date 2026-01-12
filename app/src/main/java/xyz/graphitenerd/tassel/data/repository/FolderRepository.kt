@@ -34,6 +34,8 @@ class FolderRepository @Inject constructor(
 
     override fun updateFolders(folders: List<BookmarkFolder>) = folderDao.updateFolders(folders)
 
+    override fun deleteFolder(folder: BookmarkFolder) = folderDao.deleteFolder(folder)
+
     override fun getFolders() = folderDao.getFolders()
 
     override fun syncFoldersToCloud() {
