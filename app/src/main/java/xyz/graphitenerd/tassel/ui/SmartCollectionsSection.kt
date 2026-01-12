@@ -33,14 +33,6 @@ fun SmartCollectionsSection(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
-        Text(
-            text = "Collections",
-            style = MaterialTheme.typography.subtitle1,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 0.dp, vertical = 8.dp)
-        )
-
         if (compactMode) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 0.dp),
