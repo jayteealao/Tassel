@@ -97,11 +97,18 @@ fun FolderScreen(
             }
         }
     ) {
-        LaunchedEffect(snackbarState) {
+         LaunchedEffect(snackbarState) {
             var result: SnackbarResult? = null
             if (snackbarState != null) {
                 result = scaffoldState.snackbarHostState.showSnackbar("Bookmark Deleted", "UNDO")
             }
+            if (result == SnackbarResult.ActionPerformed) {
+                withContext(Dispatchers.IO) {
+                    VM.addBookmark(snackbarState!!)
+                }
+            }
+        }
+    }
             if (result == SnackbarResult.ActionPerformed) {
                 withContext(Dispatchers.IO) {
                     VM.addBookmark(snackbarState!!)
