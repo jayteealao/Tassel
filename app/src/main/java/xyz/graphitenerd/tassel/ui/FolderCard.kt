@@ -1,5 +1,13 @@
 package xyz.graphitenerd.tassel.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -16,16 +24,34 @@ import compose.icons.fontawesomeicons.Solid
 import compose.icons.fontawesomeicons.solid.Folder
 import xyz.graphitenerd.tassel.model.BookmarkFolder
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun FolderCard(folder: BookmarkFolder, onClick: () -> Unit) {
-
+fun FolderCard(
+    folder: BookmarkFolder,
+    onClick: () -> Unit = {},
+    isSelected: Boolean = false,
+    selectionEnabled: Boolean = false,
+    onLongPress: () -> Unit = {}
+) {
     Card(
-        onClick = onClick,
+        onClick = {
+            if (selectionEnabled) {
+                onLongPress()
+            } else {
+                onClick()
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .then(
+                if (isSelected) {
+                    Modifier.border(2.dp, Color.Black, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                } else {
+                    Modifier
+                }
+            ),
         elevation = 0.dp,
         shape = RectangleShape
     ) {
@@ -34,6 +60,18 @@ fun FolderCard(folder: BookmarkFolder, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
+                // Selection checkbox
+                AnimatedVisibility(
+                    visible = selectionEnabled,
+                    enter = fadeIn() + scaleIn(),
+                    exit = fadeOut() + scaleOut()
+                ) {
+                    SelectionCheckbox(
+                        isSelected = isSelected,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+
                 Icon(
                     imageVector = FontAwesomeIcons.Solid.Folder,
                     contentDescription = "folder icon",

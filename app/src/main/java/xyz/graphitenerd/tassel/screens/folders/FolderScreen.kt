@@ -49,6 +49,7 @@ import xyz.graphitenerd.tassel.model.BookmarkFolder
 import xyz.graphitenerd.tassel.ui.BookmarkCard
 import xyz.graphitenerd.tassel.ui.FolderCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
+import xyz.graphitenerd.tassel.ui.SelectionTopBar
 import xyz.graphitenerd.tassel.ui.SwipeBox
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -60,6 +61,14 @@ fun FolderScreen(
     val folders by VM.folders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
     val bookmarks by VM.bookmarks.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle, initialValue = emptyList())
     val currentFolder by VM.currentFolder.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+
+    // Multiselect state
+    val selectedFolders by VM.selectedFolders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+    val selectedBookmarks by VM.selectedBookmarks.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+    val isSelectionMode by VM.isSelectionMode.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+    val deletedFolders by VM.deletedFolders.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+    val deletedBookmarks by VM.deletedBookmarks.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
+
     var newFolderName by remember {
         mutableStateOf("")
     }
@@ -68,24 +77,40 @@ fun FolderScreen(
     val scaffoldState = rememberScaffoldState()
     val snackbarState by VM.deletedBookmark.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
 
-    BackHandler(currentFolder?.parentId != null && currentFolder?.id != 1L) {
+    // BackHandler for folder navigation (only when not in selection mode)
+    BackHandler(currentFolder?.parentId != null && currentFolder?.id != 1L && !isSelectionMode) {
         currentFolder?.parentId?.let { VM.refreshScreen(it) }
+    }
+
+    // BackHandler for selection mode
+    BackHandler(enabled = isSelectionMode) {
+        VM.clearAllSelections()
     }
 
     Scaffold(
         scaffoldState = scaffoldState,
         topBar = {
-            Column() {
-                HomeAppBar(
-                    actionIcon = rememberVectorPainter(image = FontAwesomeIcons.Solid.FolderPlus),
-                    onClickActionButton = {
-                        showNewFolderInput = !showNewFolderInput
-                    }
+            if (isSelectionMode) {
+                SelectionTopBar(
+                    selectedCount = selectedFolders.size + selectedBookmarks.size,
+                    onCloseSelection = { VM.clearAllSelections() },
+                    onDelete = { VM.deleteSelectedItems() },
+                    onMoveToFolder = { /* TODO: Implement move to folder */ },
+                    onSelectAll = { VM.selectAllInCurrentFolder() }
                 )
-                Divider(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    color = Color.Black
-                )
+            } else {
+                Column() {
+                    HomeAppBar(
+                        actionIcon = rememberVectorPainter(image = FontAwesomeIcons.Solid.FolderPlus),
+                        onClickActionButton = {
+                            showNewFolderInput = !showNewFolderInput
+                        }
+                    )
+                    Divider(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        color = Color.Black
+                    )
+                }
             }
         },
         snackbarHost = { snackbarHostState ->
@@ -97,7 +122,7 @@ fun FolderScreen(
             }
         }
     ) {
-         LaunchedEffect(snackbarState) {
+        LaunchedEffect(snackbarState) {
             var result: SnackbarResult? = null
             if (snackbarState != null) {
                 result = scaffoldState.snackbarHostState.showSnackbar("Bookmark Deleted", "UNDO")
@@ -108,10 +133,14 @@ fun FolderScreen(
                 }
             }
         }
-    }
-            if (result == SnackbarResult.ActionPerformed) {
-                withContext(Dispatchers.IO) {
-                    VM.addBookmark(snackbarState!!)
+
+        // Snackbar for multiselect undo
+        LaunchedEffect(deletedFolders, deletedBookmarks) {
+            if (deletedFolders.isNotEmpty() || deletedBookmarks.isNotEmpty()) {
+                val message = "${deletedFolders.size + deletedBookmarks.size} items deleted"
+                val result = scaffoldState.snackbarHostState.showSnackbar(message, "UNDO")
+                if (result == SnackbarResult.ActionPerformed) {
+                    VM.undoDelete()
                 }
             }
         }
@@ -172,29 +201,41 @@ fun FolderScreen(
                 }
             }
 
+            // Folders with multiselect support
             items(
                 count = folders.size,
                 key = { folders[it].id },
                 contentType = { "folder" }
             ) { index ->
                 val folder = folders[index]
+                val isSelected = folder.id in selectedFolders
+
                 FolderCard(
                     folder = folder,
+                    isSelected = isSelected,
+                    selectionEnabled = isSelectionMode,
                     onClick = {
                         scope.launch(Dispatchers.Main) {
                             VM.refreshScreen(folder.id)
                             lazyListState.animateScrollToItem(0)
                         }
+                    },
+                    onLongPress = {
+                        VM.enterSelectionMode()
+                        VM.toggleMultiSelectFolder(folder.id)
                     }
                 )
             }
 
+            // Bookmarks with multiselect support
             items(
                 count = bookmarks.size,
                 key = { bookmarks[it].id },
                 contentType = { "bookmark" }
             ) { index ->
                 val bookmark = bookmarks[index]
+                val isSelected = bookmark.id in selectedBookmarks
+
                 SwipeBox(
                     modifier = Modifier,
                     onDelete = {
@@ -204,32 +245,24 @@ fun FolderScreen(
                     },
                     onEdit = {}
                 ) {
-                    BookmarkCard(bookmark = bookmark)
+                    BookmarkCard(
+                        bookmark = bookmark,
+                        isSelected = isSelected,
+                        selectionEnabled = isSelectionMode,
+                        onClick = {
+                            // TODO: Open bookmark
+                        },
+                        onLongPress = {
+                            VM.enterSelectionMode()
+                            VM.toggleMultiSelectBookmark(bookmark.id)
+                        }
+                    )
                     Divider(
                         modifier = Modifier.align(Alignment.BottomCenter),
                         color = Color.Black,
                     )
                 }
-
             }
-
-//            items(bookmarks, key = { "bookmark${it.id}" }) {
-//                SwipeBox(
-//                    modifier = Modifier,
-//                    onDelete = {
-//                        scope.launch(Dispatchers.IO) {
-//                            VM.deleteBookmark(it)
-//                        }
-//                    },
-//                    onEdit = {}
-//                ) {
-//                    BookmarkCard(bookmark = it)
-//                    Divider(
-//                        modifier = Modifier.align(Alignment.BottomCenter),
-//                        color = Color.Black,
-//                    )
-//                }
-//            }
         }
     }
 }

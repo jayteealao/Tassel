@@ -20,6 +20,8 @@ import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
 import xyz.graphitenerd.tassel.data.repository.FolderRepository
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkFolder
+import xyz.graphitenerd.tassel.model.DeletedFolderWithBookmarks
+import xyz.graphitenerd.tassel.model.MovedFolderState
 import xyz.graphitenerd.tassel.ui.FileTree
 import javax.inject.Inject
 
@@ -69,6 +71,13 @@ class FolderViewModel @Inject constructor(
     private val _deletedFolders: MutableStateFlow<List<DeletedFolderWithBookmarks>> = MutableStateFlow(emptyList())
     private val _deletedBookmarksForUndo: MutableStateFlow<List<Bookmark>> = MutableStateFlow(emptyList())
     private val _movedFolders: MutableStateFlow<MovedFolderState?> = MutableStateFlow(null)
+
+    // Public multiselect state exposure
+    val selectedFolders: StateFlow<List<Long>> = _selectedFolders.asStateFlow()
+    val selectedBookmarks: StateFlow<List<Long>> = _selectedBookmarks.asStateFlow()
+    val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
+    val deletedFolders: StateFlow<List<DeletedFolderWithBookmarks>> = _deletedFolders.asStateFlow()
+    val deletedBookmarks: StateFlow<List<Bookmark>> = _deletedBookmarksForUndo.asStateFlow()
 
     private fun getFoldersByParentId(id: Long? = null) = folderRepository.getFoldersByParentId(id)
 
@@ -179,7 +188,7 @@ class FolderViewModel @Inject constructor(
         val currentFolderId = _currentFolderDisplayed.value.folderId
         val currentFolderName = _currentFolderDisplayed.value.folderName
         val currentFolderParent = _currentFolderDisplayed.value.parent
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             val newFolder = BookmarkFolder(
                 name = name,
@@ -187,7 +196,7 @@ class FolderViewModel @Inject constructor(
             )
             // Save and wait for completion
             folderRepository.saveAndSyncFolder(newFolder)
-             
+
             // Refresh on main thread after insert completes
             withContext(Dispatchers.Main) {
                 val freshFileTree = FileTree(
@@ -199,6 +208,148 @@ class FolderViewModel @Inject constructor(
             }
         }
     }
+
+    // ========== Multiselect Functions ==========
+
+    /**
+     * Toggle the multiselect state of a folder.
+     */
+    fun toggleMultiSelectFolder(folderId: Long) {
+        _selectedFolders.value = if (folderId in _selectedFolders.value) {
+            _selectedFolders.value - folderId
+        } else {
+            _selectedFolders.value + folderId
+        }
+        updateSelectionModeFromSelection()
+    }
+
+    /**
+     * Toggle the multiselect state of a bookmark.
+     */
+    fun toggleMultiSelectBookmark(bookmarkId: Long) {
+        _selectedBookmarks.value = if (bookmarkId in _selectedBookmarks.value) {
+            _selectedBookmarks.value - bookmarkId
+        } else {
+            _selectedBookmarks.value + bookmarkId
+        }
+        updateSelectionModeFromSelection()
+    }
+
+    /**
+     * Toggle selection mode on/off.
+     */
+    fun toggleSelectionMode() {
+        _isSelectionMode.value = !_isSelectionMode.value
+    }
+
+    /**
+     * Enter selection mode.
+     */
+    fun enterSelectionMode() {
+        _isSelectionMode.value = true
+    }
+
+    /**
+     * Clear all selections and exit selection mode.
+     */
+    fun clearAllSelections() {
+        _selectedFolders.value = emptyList()
+        _selectedBookmarks.value = emptyList()
+        _isSelectionMode.value = false
+    }
+
+    /**
+     * Update selection mode based on current selections.
+     * Auto-exit selection mode when all items are deselected.
+     */
+    private fun updateSelectionModeFromSelection() {
+        // Auto-exit is handled by the combine flow in init block
+    }
+
+    /**
+     * Select all folders and bookmarks in the current folder.
+     */
+    fun selectAllInCurrentFolder() {
+        viewModelScope.launch(coroutineDispatcher) {
+            val currentFolders = folderRepository.getFoldersByParentId(currentFolderId)
+            val currentBookmarks = bookmarkRepository.getBookmarksByFolderId(currentFolderId)
+
+            _selectedFolders.value = currentFolders.map { folder -> folder.id }
+            _selectedBookmarks.value = currentBookmarks.map { bookmark -> bookmark.id }
+            _isSelectionMode.value = true
+        }
+    }
+
+    /**
+     * Delete selected folders and bookmarks with undo support.
+     */
+    fun deleteSelectedItems() {
+        viewModelScope.launch(coroutineDispatcher) {
+            val deletedFoldersList = mutableListOf<DeletedFolderWithBookmarks>()
+            val deletedBookmarksList = mutableListOf<Bookmark>()
+
+            // Delete folders (with validation - skip HOME folder)
+            _selectedFolders.value.forEach { folderId ->
+                if (folderId == 1L) return@forEach // Skip HOME folder
+
+                val folder = folderRepository.getFolderById(folderId)
+                val bookmarks = bookmarkRepository.getBookmarksByFolderId(folderId)
+
+                // Move bookmarks to parent folder (skip if parent is null)
+                folder.parentId?.let { parentId ->
+                    bookmarks.forEach { bookmark ->
+                        launch(coroutineDispatcher) {
+                            bookmarkRepository.updateBookmarkFolder(bookmark.id, parentId)
+                        }
+                    }
+                }
+
+                folderRepository.deleteFolderById(folderId)
+                deletedFoldersList.add(DeletedFolderWithBookmarks(folder, bookmarks, folder.parentId))
+            }
+
+            // Delete bookmarks
+            _selectedBookmarks.value.forEach { bookmarkId ->
+                val bookmark = bookmarkRepository.getBookmarkById(bookmarkId)
+                bookmarkRepository.deleteBookmark(listOf(bookmark))
+                deletedBookmarksList.add(bookmark)
+            }
+
+            _deletedFolders.value = deletedFoldersList
+            _deletedBookmarksForUndo.value = deletedBookmarksList
+
+            clearAllSelections()
+        }
+    }
+
+    /**
+     * Undo the last delete operation.
+     */
+    fun undoDelete() {
+        viewModelScope.launch(coroutineDispatcher) {
+            // Restore folders
+            _deletedFolders.value.forEach { deleted ->
+                // Insert folder with id=0 to get auto-generated ID
+                folderRepository.insertFolder(deleted.folder.copy(id = 0))
+                // Get the newly inserted folder by name and parentId
+                val restoredFolder = folderRepository.getFolderByName(deleted.folder.name)
+                // Restore bookmarks to the newly created folder
+                deleted.bookmarks.forEach { bookmark ->
+                    bookmarkRepository.updateBookmarkFolder(bookmark.id, restoredFolder.id)
+                }
+            }
+
+            // Restore bookmarks
+            _deletedBookmarksForUndo.value.forEach { bookmark ->
+                bookmarkRepository.addBookmark(bookmark)
+            }
+
+            _deletedFolders.value = emptyList()
+            _deletedBookmarksForUndo.value = emptyList()
+        }
+    }
+
+    // ========== End Multiselect Functions ==========
 
      val folderSelectionStateFlow: StateFlow<FolderSelectionState> = combine(
         currentFolderDisplayed,

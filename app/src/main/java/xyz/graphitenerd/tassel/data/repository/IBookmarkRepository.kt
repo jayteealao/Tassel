@@ -28,6 +28,7 @@ interface IBookmarkRepository {
     fun deleteBookmark(bookmarks: List<Bookmark>)
     fun deleteBookmark(bookmarkIds: Array<BookmarkId>)
     fun addBookmarks(bookmarks: List<Bookmark>)
+    suspend fun updateBookmarkFolder(bookmarkId: Long, folderId: Long)
 
     // Smart Collections
     fun getSmartCollectionBookmarks(collection: SmartCollection): Flow<PagingData<Bookmark>>

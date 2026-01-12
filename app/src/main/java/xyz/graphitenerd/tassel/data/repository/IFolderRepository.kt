@@ -14,4 +14,5 @@ interface IFolderRepository {
     fun syncFoldersFromCloud(onComplete: () -> Unit = {})
 
     suspend fun saveAndSyncFolder(folder: BookmarkFolder)
+    suspend fun deleteFolderById(folderId: Long)
 }

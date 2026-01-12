@@ -73,4 +73,9 @@ class FolderRepository @Inject constructor(
         insertFolder(folder)
         storageService.saveFolder(folder)
     }
+
+    override suspend fun deleteFolderById(folderId: Long) {
+        val folder = folderDao.getFolderById(folderId)
+        folderDao.deleteFolder(folder)
+    }
 }

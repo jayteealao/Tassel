@@ -158,37 +158,6 @@ fun BookmarkCard(
 }
 
 @Composable
-private fun SelectionCheckbox(
-    isSelected: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(24.dp)
-            .then(
-                if (isSelected) {
-                    Modifier
-                        .background(Color.Black, CircleShape)
-                } else {
-                    Modifier
-                        .border(2.dp, Color.Black, CircleShape)
-                        .background(Color.White, CircleShape)
-                }
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        if (isSelected) {
-            Icon(
-                imageVector = Icons.Filled.Check,
-                contentDescription = "Selected",
-                tint = Color.White,
-                modifier = Modifier.size(16.dp)
-            )
-        }
-    }
-}
-
-@Composable
 fun BookmarkCardOptions() {
     Card() {
     }

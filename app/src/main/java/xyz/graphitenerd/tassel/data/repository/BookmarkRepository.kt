@@ -61,7 +61,7 @@ class BookmarkRepository @Inject constructor(
 
     override fun getBookmarksByFolders(id: Long) = bookmarkDao.getBookmarksByFolder(id)
 
-    override fun getBookmarksByFolderId(folderId: Long) = bookmarkDao.getBooksByFolderId(folderId)
+    override fun getBookmarksByFolderId(folderId: Long) = bookmarkDao.getBookmarksByFolderId(folderId)
 
     init {
         if (accountService.hasUser() and !storageService.isUserSet()) {
@@ -220,5 +220,10 @@ class BookmarkRepository @Inject constructor(
         scope.launch(Dispatchers.IO) {
             bookmarkDao.incrementOpenCount(url, timestamp)
         }
+    }
+
+    override suspend fun updateBookmarkFolder(bookmarkId: Long, folderId: Long) {
+        val bookmark = bookmarkDao.getBookmarkById(bookmarkId)
+        bookmarkDao.addBookmark(bookmark.copy(folderId = folderId))
     }
 }
