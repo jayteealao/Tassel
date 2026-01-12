@@ -1,6 +1,8 @@
 package xyz.graphitenerd.tassel.screens.folders
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
@@ -16,12 +18,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Snackbar
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarResult
 import androidx.compose.material.Text
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -45,8 +50,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import xyz.graphitenerd.tassel.R
+import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.BookmarkFolder
 import xyz.graphitenerd.tassel.ui.BookmarkCard
+import xyz.graphitenerd.tassel.ui.FileTree
+import xyz.graphitenerd.tassel.ui.FolderBottomSheet
 import xyz.graphitenerd.tassel.ui.FolderCard
 import xyz.graphitenerd.tassel.ui.HomeAppBar
 import xyz.graphitenerd.tassel.ui.SelectionTopBar
@@ -75,6 +83,17 @@ fun FolderScreen(
     var showNewFolderInput by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
+    val context = LocalContext.current
+    val bottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true
+    )
+
+    // Collect folder selection state
+    val folderSelectionState by VM.folderSelectionStateFlow.collectAsStateWithLifecycle(
+        lifecycle = LocalLifecycleOwner.current.lifecycle
+    )
+
     val snackbarState by VM.deletedBookmark.collectAsStateWithLifecycle(lifecycle = LocalLifecycleOwner.current.lifecycle)
 
     // BackHandler for folder navigation (only when not in selection mode)
@@ -87,41 +106,87 @@ fun FolderScreen(
         VM.clearAllSelections()
     }
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
-            if (isSelectionMode) {
-                SelectionTopBar(
-                    selectedCount = selectedFolders.size + selectedBookmarks.size,
-                    onCloseSelection = { VM.clearAllSelections() },
-                    onDelete = { VM.deleteSelectedItems() },
-                    onMoveToFolder = { /* TODO: Implement move to folder */ },
-                    onSelectAll = { VM.selectAllInCurrentFolder() }
-                )
+    // Sync bottom sheet state with folder selection state
+    LaunchedEffect(folderSelectionState.showFolderSelector) {
+        if (folderSelectionState.showFolderSelector) {
+            bottomSheetState.show()
+        } else {
+            bottomSheetState.hide()
+        }
+    }
+
+    // Handle back press to close bottom sheet
+    BackHandler(enabled = bottomSheetState.isVisible) {
+        scope.launch {
+            bottomSheetState.hide()
+            folderSelectionState.toggleFolderSelection()
+        }
+    }
+
+    FolderBottomSheet(
+        sheetState = bottomSheetState,
+        currentFolder = folderSelectionState.currentFolder,
+        selectedFolder = folderSelectionState.selectedFolder,
+        onNavigateToFolder = { folderSelectionState.onClick(it) },
+        onFolderSelected = { folder ->
+            if (folder.folderId == folderSelectionState.selectedFolder?.folderId) {
+                folderSelectionState.onFolderSelected(FileTree())
             } else {
-                Column() {
-                    HomeAppBar(
-                        actionIcon = rememberVectorPainter(image = FontAwesomeIcons.Solid.FolderPlus),
-                        onClickActionButton = {
-                            showNewFolderInput = !showNewFolderInput
-                        }
-                    )
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = Color.Black
-                    )
-                }
+                folderSelectionState.onFolderSelected(folder)
             }
         },
-        snackbarHost = { snackbarHostState ->
-            SnackbarHost(hostState = snackbarHostState) {
-                Snackbar(
-                    modifier = Modifier.padding(bottom = 96.dp),
-                    snackbarData = it
-                )
+        onCreateFolder = { name ->
+            folderSelectionState.createFolder(name)
+        },
+        onDismiss = {
+            scope.launch {
+                bottomSheetState.hide()
+                folderSelectionState.toggleFolderSelection()
+                folderSelectionState.onFolderSelected(FileTree())
+            }
+        },
+        onConfirm = {
+            VM.moveSelectedItems()
+            scope.launch {
+                bottomSheetState.hide()
             }
         }
     ) {
+        Scaffold(
+            scaffoldState = scaffoldState,
+            topBar = {
+                if (isSelectionMode) {
+                    SelectionTopBar(
+                        selectedCount = selectedFolders.size + selectedBookmarks.size,
+                        onCloseSelection = { VM.clearAllSelections() },
+                        onDelete = { VM.deleteSelectedItems() },
+                        onMoveToFolder = { folderSelectionState.toggleFolderSelection() },
+                        onSelectAll = { VM.selectAllInCurrentFolder() }
+                    )
+                } else {
+                    Column() {
+                        HomeAppBar(
+                            actionIcon = rememberVectorPainter(image = FontAwesomeIcons.Solid.FolderPlus),
+                            onClickActionButton = {
+                                showNewFolderInput = !showNewFolderInput
+                            }
+                        )
+                        Divider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = Color.Black
+                        )
+                    }
+                }
+            },
+            snackbarHost = { snackbarHostState ->
+                SnackbarHost(hostState = snackbarHostState) {
+                    Snackbar(
+                        modifier = Modifier.padding(bottom = 96.dp),
+                        snackbarData = it
+                    )
+                }
+            }
+        ) {
         LaunchedEffect(snackbarState) {
             var result: SnackbarResult? = null
             if (snackbarState != null) {
@@ -250,7 +315,14 @@ fun FolderScreen(
                         isSelected = isSelected,
                         selectionEnabled = isSelectionMode,
                         onClick = {
-                            // TODO: Open bookmark
+                            if (isSelectionMode) {
+                                VM.toggleMultiSelectBookmark(bookmark.id)
+                            } else {
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    data = Uri.parse(bookmark.rawUrl)
+                                }
+                                context.startActivity(intent)
+                            }
                         },
                         onLongPress = {
                             VM.enterSelectionMode()
@@ -264,5 +336,6 @@ fun FolderScreen(
                 }
             }
         }
+    }
     }
 }

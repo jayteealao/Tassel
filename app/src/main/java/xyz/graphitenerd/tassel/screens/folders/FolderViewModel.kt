@@ -45,6 +45,21 @@ class FolderViewModel @Inject constructor(
     var currentFolder: MutableStateFlow<BookmarkFolder?> = MutableStateFlow(null)
         private set
 
+    // Multiselect state - declared before init to ensure proper initialization order
+    private val _isSelectionMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _selectedFolders: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
+    private val _selectedBookmarks: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
+    private val _deletedFolders: MutableStateFlow<List<DeletedFolderWithBookmarks>> = MutableStateFlow(emptyList())
+    private val _deletedBookmarksForUndo: MutableStateFlow<List<Bookmark>> = MutableStateFlow(emptyList())
+    private val _movedFolders: MutableStateFlow<MovedFolderState?> = MutableStateFlow(null)
+
+    // Public multiselect state exposure
+    val selectedFolders: StateFlow<List<Long>> = _selectedFolders.asStateFlow()
+    val selectedBookmarks: StateFlow<List<Long>> = _selectedBookmarks.asStateFlow()
+    val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
+    val deletedFolders: StateFlow<List<DeletedFolderWithBookmarks>> = _deletedFolders.asStateFlow()
+    val deletedBookmarks: StateFlow<List<Bookmark>> = _deletedBookmarksForUndo.asStateFlow()
+
     init {
         viewModelScope.launch(coroutineDispatcher) {
             currentFolder.value = getFolderById(currentFolderId)
@@ -64,21 +79,6 @@ class FolderViewModel @Inject constructor(
         }
     }
 
-    // Multiselect state
-    private val _isSelectionMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val _selectedFolders: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
-    private val _selectedBookmarks: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
-    private val _deletedFolders: MutableStateFlow<List<DeletedFolderWithBookmarks>> = MutableStateFlow(emptyList())
-    private val _deletedBookmarksForUndo: MutableStateFlow<List<Bookmark>> = MutableStateFlow(emptyList())
-    private val _movedFolders: MutableStateFlow<MovedFolderState?> = MutableStateFlow(null)
-
-    // Public multiselect state exposure
-    val selectedFolders: StateFlow<List<Long>> = _selectedFolders.asStateFlow()
-    val selectedBookmarks: StateFlow<List<Long>> = _selectedBookmarks.asStateFlow()
-    val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
-    val deletedFolders: StateFlow<List<DeletedFolderWithBookmarks>> = _deletedFolders.asStateFlow()
-    val deletedBookmarks: StateFlow<List<Bookmark>> = _deletedBookmarksForUndo.asStateFlow()
-
     private fun getFoldersByParentId(id: Long? = null) = folderRepository.getFoldersByParentId(id)
 
     private fun getFolderById(id: Long) = folderRepository.getFolderById(id)
@@ -90,13 +90,12 @@ class FolderViewModel @Inject constructor(
         }
     }
 
-    private val _bookmarks = MutableStateFlow<List<Bookmark>>(emptyList())
+    private val _bookmarks: MutableStateFlow<List<Bookmark>> = MutableStateFlow(emptyList())
     val bookmarks: StateFlow<List<Bookmark>>
         get() = _bookmarks
 
     private fun refreshBookmarks(id: Long) {
         viewModelScope.launch(coroutineDispatcher) {
-            _bookmarks.value = emptyList()
             bookmarkRepository.getBookmarksByFolders(id).collect { bookmarks ->
                 _bookmarks.value = bookmarks
             }
@@ -346,6 +345,33 @@ class FolderViewModel @Inject constructor(
 
             _deletedFolders.value = emptyList()
             _deletedBookmarksForUndo.value = emptyList()
+        }
+    }
+
+    /**
+     * Move selected folders and bookmarks to the selected folder.
+     * Folders are moved by updating their parentId.
+     * Bookmarks are moved by updating their folderId.
+     */
+    fun moveSelectedItems() {
+        viewModelScope.launch(coroutineDispatcher) {
+            val targetFolderId = selectedFolder.value!!.folderId
+
+            // Move folders by updating their parentId
+            _selectedFolders.value.forEach { folderId ->
+                if (folderId == 1L) return@forEach // Skip HOME folder
+
+                val folder = folderRepository.getFolderById(folderId)
+                folderRepository.insertFolder(folder.copy(parentId = targetFolderId))
+            }
+
+            // Move bookmarks by updating their folderId
+            _selectedBookmarks.value.forEach { bookmarkId ->
+                bookmarkRepository.updateBookmarkFolder(bookmarkId, targetFolderId)
+            }
+
+            clearAllSelections()
+            refreshScreen(currentFolderId) // Refresh to show updated state
         }
     }
 

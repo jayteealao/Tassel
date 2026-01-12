@@ -45,6 +45,10 @@ fun FolderCard(
             .fillMaxWidth()
             .padding(8.dp)
             .wrapContentHeight()
+            .combinedClickable(
+                onClick = { /* Handled by Card's onClick */ },
+                onLongClick = onLongPress
+            )
             .then(
                 if (isSelected) {
                     Modifier.border(2.dp, Color.Black, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
