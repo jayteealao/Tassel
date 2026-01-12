@@ -49,7 +49,26 @@ class FolderViewModel @Inject constructor(
         }
         refreshFolders(1L)
         refreshBookmarks(1)
+
+        // Auto-exit selection mode when all items deselected
+        viewModelScope.launch(coroutineDispatcher) {
+            combine(_selectedFolders, _selectedBookmarks) { folders: List<Long>, bookmarks: List<Long> ->
+                folders.isEmpty() && bookmarks.isEmpty()
+            }.collect { allDeselected ->
+                if (allDeselected && _isSelectionMode.value) {
+                    _isSelectionMode.value = false
+                }
+            }
+        }
     }
+
+    // Multiselect state
+    private val _isSelectionMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _selectedFolders: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
+    private val _selectedBookmarks: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
+    private val _deletedFolders: MutableStateFlow<List<DeletedFolderWithBookmarks>> = MutableStateFlow(emptyList())
+    private val _deletedBookmarksForUndo: MutableStateFlow<List<Bookmark>> = MutableStateFlow(emptyList())
+    private val _movedFolders: MutableStateFlow<MovedFolderState?> = MutableStateFlow(null)
 
     private fun getFoldersByParentId(id: Long? = null) = folderRepository.getFoldersByParentId(id)
 
@@ -68,7 +87,7 @@ class FolderViewModel @Inject constructor(
 
     private fun refreshBookmarks(id: Long) {
         viewModelScope.launch(coroutineDispatcher) {
-        _bookmarks.value = emptyList()
+            _bookmarks.value = emptyList()
             bookmarkRepository.getBookmarksByFolders(id).collect { bookmarks ->
                 _bookmarks.value = bookmarks
             }
@@ -105,76 +124,6 @@ class FolderViewModel @Inject constructor(
             folderRepository.saveAndSyncFolder(folder)
         }
     }
-
-    // Multiselect state
-    private val _isSelectionMode: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val _selectedFolders: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
-    private val _selectedBookmarks: MutableStateFlow<List<Long>> = MutableStateFlow(emptyList())
-    private val _deletedFolders: MutableStateFlow<List<DeletedFolderWithBookmarks>> = MutableStateFlow(emptyList())
-    private val _deletedBookmarksForUndo: MutableStateFlow<List<Bookmark>> = MutableStateFlow(emptyList())
-    private val _movedFolders: MutableStateFlow<MovedFolderState?> = MutableStateFlow(null)
-
-    // Data classes for multiselect state
-    data class MovedFolderState(
-        val folderIds: List<Long>,
-        val oldParentIds: Map<Long, Long?>,
-        val newParentId: Long?
-    )
-
-    data class DeletedFolderWithBookmarks(
-        val folder: BookmarkFolder,
-        val bookmarks: List<Bookmark>
-    )
-
-    data class FolderMultiSelectState(
-        val selectedFolders: List<Long> = emptyList(),
-        val selectedBookmarks: List<Long> = emptyList(),
-        val isSelectionMode: Boolean = false,
-        val deletedFolders: List<DeletedFolderWithBookmarks> = emptyList(),
-        val deletedBookmarks: List<Bookmark> = emptyList(),
-        val movedFolders: MovedFolderState? = null,
-        val onSelectFolder: (Long, Boolean) -> Unit = { _, _ -> },
-        val onSelectBookmark: (Long, Boolean) -> Unit = { _, _ -> },
-        val toggleSelectionMode: () -> Unit = {},
-        val clearSelectedItems: () -> Unit = {},
-        val selectAll: () -> Unit = {},
-        val deleteSelectedItems: () -> Unit = {},
-        val moveSelectedBookmarks: () -> Unit = {},
-        val moveSelectedFolders: () -> Unit = {},
-        val undoFolderMove: () -> Unit = {},
-        val undoFolderDelete: () -> Unit = {},
-    )
-
-    // Final combine using multiselect state flows (similar to BookmarkViewModel pattern)
-    val folderMultiSelectStateFlow: StateFlow<FolderMultiSelectState> = combine(
-        _selectedFolders,
-        _selectedBookmarks,
-        _isSelectionMode,
-        _deletedFolders,
-        _deletedBookmarksForUndo,
-        _movedFolders
-    ) { selectedFolders, selectedBookmarks, isSelectionMode, deletedFolders, deletedBookmarks, movedFolders ->
-        FolderMultiSelectState(
-            selectedFolders = selectedFolders,
-            selectedBookmarks = selectedBookmarks,
-            isSelectionMode = isSelectionMode,
-            deletedFolders = deletedFolders,
-            deletedBookmarks = deletedBookmarks,
-            movedFolders = movedFolders,
-            onSelectFolder = ::onSelectFolder,
-            onSelectBookmark = ::onSelectBookmark,
-            toggleSelectionMode = ::toggleSelectionMode,
-            clearSelectedItems = ::clearSelectedItems,
-            selectAll = ::selectAll,
-            deleteSelectedItems = ::deleteSelectedItems,
-            moveSelectedBookmarks = ::moveSelectedBookmarks,
-            moveSelectedFolders = ::moveSelectedFolders,
-            undoFolderMove = ::undoFolderMove,
-            undoFolderDelete = ::undoFolderDelete,
-        )
-    }.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5000), FolderMultiSelectState()
-    )
 
     //folder selection state
     private fun getFolderChildren(fileTree: FileTree): List<FileTree> {
@@ -238,7 +187,7 @@ class FolderViewModel @Inject constructor(
             )
             // Save and wait for completion
             folderRepository.saveAndSyncFolder(newFolder)
-            
+             
             // Refresh on main thread after insert completes
             withContext(Dispatchers.Main) {
                 val freshFileTree = FileTree(
