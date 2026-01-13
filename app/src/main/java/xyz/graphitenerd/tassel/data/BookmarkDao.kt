@@ -61,10 +61,10 @@ interface BookmarkDao {
     """)
     fun searchBookmarks(search: String): List<Bookmark>
 
-    @Query("SELECT * FROM bookmark WHERE folderId LIKE :folderId")
+    @Query("SELECT * FROM bookmark WHERE folderId = :folderId ORDER BY creation_date DESC")
     fun getBookmarksByFolder(folderId: Long): Flow<List<Bookmark>>
 
-    @Query("SELECT * FROM bookmark WHERE folderId = :folderId")
+    @Query("SELECT * FROM bookmark WHERE folderId = :folderId ORDER BY creation_date DESC")
     fun getBookmarksByFolderId(folderId: Long): List<Bookmark>
 
     @Query("SELECT count(*) FROM bookmark")

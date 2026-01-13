@@ -9,11 +9,13 @@ import io.github.boguszpawlowski.chassis.field
 import io.github.boguszpawlowski.chassis.longerThan
 import io.github.boguszpawlowski.chassis.reduce
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import me.saket.unfurl.UnfurlResult
 import me.saket.unfurl.Unfurler
 import xyz.graphitenerd.tassel.data.repository.BookmarkRepository
@@ -38,6 +40,9 @@ class NewBookmarkViewModel @Inject constructor(
 
     private var _bookmarkStateFlow: MutableStateFlow<BookmarkMarker> = MutableStateFlow(EmptyBookmark)
     val bookmarkStateFlow = _bookmarkStateFlow.asStateFlow()
+
+    private val _uiState = MutableStateFlow(AddBookmarkUiState.Initial)
+    val uiState = _uiState.asStateFlow()
 
     private val unfurler = Unfurler(
         extensions = listOf(OpenGraphunfurlExtension())
@@ -69,7 +74,6 @@ class NewBookmarkViewModel @Inject constructor(
                 bookmark = bookmark.copy(
                     title = title(),
                 )
-//                Log.d("edit", "preview edit: $bookmark")
                 _bookmarkStateFlow.value = bookmark
 
             }
@@ -78,12 +82,9 @@ class NewBookmarkViewModel @Inject constructor(
         with(bookmarkForm()) {
             viewModelScope.launch(coroutineDispatcher) {
                 if (address() != null) {
-//                    Log.e("tassel", "on save form address is ${address()}")
                     val unfurlResult = unfurler.unfurl(address())
                     val extra = unfurlResult?.ogExtra()
                     Log.d("tassel", "metadata: $extra")
-//                    val data = Beaver.load(address()).await()
-//                    Log.e("tassel", "metadata: ${data.toString()}")
                     if (unfurlResult != null) {
                         _bookmarkStateFlow.value = unfurlResult.toBookmarkMapper(address()).apply {
                             name = extra?.name
@@ -100,43 +101,138 @@ class NewBookmarkViewModel @Inject constructor(
         }
     }
 
-    fun saveBookmarkForm() {
-        if ( isEdit ) {
-            viewModelScope.launch(coroutineDispatcher) {
-//                Log.d("edit", "saving edit: ${bookmarkStateFlow.value as Bookmark}")
-                var bookmark = bookmarkStateFlow.value as Bookmark
-                with(bookmarkForm()) {
-                    bookmark = bookmark.copy(
-                        title = title(),
-                        folderId = folderTree().folderId
-                        )
+    fun fetchMetadataForUrl(url: String) {
+        if (url.isBlank()) return
+        
+        viewModelScope.launch(coroutineDispatcher) {
+            _uiState.value = _uiState.value.copy(isFetchingMetadata = true, urlError = null)
+            try {
+                val unfurlResult = unfurler.unfurl(url)
+                val extra = unfurlResult?.ogExtra()
+                
+                val formState = bookmarkForm.state.value
+                val currentFolderId = formState.folderTree.value?.folderId ?: 1L
+                val currentTitle = formState.title.value
+                
+                if (unfurlResult != null) {
+                    _bookmarkStateFlow.value = unfurlResult.toBookmarkMapper(url).apply {
+                        name = extra?.name
+                        mediaType = extra?.mediaType
+                        folderId = currentFolderId
+                    }
+                    
+                    if (currentTitle.isNullOrBlank() && unfurlResult.title != null) {
+                        bookmarkForm.update(BookMarkForm::title, unfurlResult.title)
+                    }
+                    _uiState.value = _uiState.value.copy(isFetchingMetadata = false)
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isFetchingMetadata = false,
+                        urlError = "Couldn't fetch page info"
+                    )
+                    _bookmarkStateFlow.value = Bookmark(
+                        rawUrl = url,
+                        url = url,
+                        title = currentTitle,
+                        folderId = currentFolderId
+                    )
                 }
-                bookmarkRepository.saveAndSyncBookmark(bookmark)
+            } catch (e: Exception) {
+                Log.e("tassel", "Error fetching metadata", e)
+                _uiState.value = _uiState.value.copy(
+                    isFetchingMetadata = false,
+                    urlError = "Couldn't fetch page info"
+                )
+                val formState = bookmarkForm.state.value
+                _bookmarkStateFlow.value = Bookmark(
+                    rawUrl = url,
+                    url = url,
+                    title = formState.title.value,
+                    folderId = formState.folderTree.value?.folderId ?: 1L
+                )
+            }
+        }
+    }
+
+    fun saveBookmarkForm(onSuccess: () -> Unit = {}) {
+        _uiState.value = _uiState.value.copy(isSaving = true, saveError = null)
+        
+        val formState = bookmarkForm.state.value
+        val currentFolderId = formState.folderTree.value?.folderId ?: 1L
+        val currentTitle = formState.title.value
+        val currentAddress = formState.address.value
+        
+        if (isEdit) {
+            viewModelScope.launch(coroutineDispatcher) {
+                try {
+                    var bookmark = bookmarkStateFlow.value as Bookmark
+                    bookmark = bookmark.copy(
+                        title = currentTitle,
+                        folderId = currentFolderId
+                    )
+                    bookmarkRepository.saveAndSyncBookmark(bookmark)
+                    _uiState.value = _uiState.value.copy(isSaving = false, bookmarkSaved = true)
+                    withContext(Dispatchers.Main) { onSuccess() }
+                } catch (e: Exception) {
+                    Log.e("tassel", "Error saving bookmark", e)
+                    _uiState.value = _uiState.value.copy(
+                        isSaving = false,
+                        saveError = "Couldn't save bookmark. Try again."
+                    )
+                }
             }
         } else {
-            with(bookmarkForm()) {
-//                Log.e("tassel", "on save form address is ${address()}")
-                viewModelScope.launch(coroutineDispatcher) {
-//                    if (Beaver.isInitialized()) {
-//                        val data = Beaver.load(address()).await()
-                    val unfurlResult = unfurler.unfurl(address())
-                    val extra = unfurlResult?.ogExtra()
-                    Log.d("tassel", "metadata: $extra")
-//                        Log.e("tassel", "metadata: $data")
+            viewModelScope.launch(coroutineDispatcher) {
+                try {
+                    val currentPreview = _bookmarkStateFlow.value
+                    if (currentPreview is Bookmark && currentPreview.rawUrl.isNotBlank()) {
+                        val bookmarkToSave = currentPreview.copy(
+                            title = currentTitle ?: currentPreview.title,
+                            folderId = currentFolderId
+                        )
+                        Log.d("tassel", "Saving bookmark with folderId: ${bookmarkToSave.folderId}")
+                        bookmarkRepository.saveAndSyncBookmark(bookmarkToSave)
+                        _uiState.value = _uiState.value.copy(isSaving = false, bookmarkSaved = true)
+                        withContext(Dispatchers.Main) { onSuccess() }
+                    } else if (!currentAddress.isNullOrBlank()) {
+                        val unfurlResult = unfurler.unfurl(currentAddress)
+                        val extra = unfurlResult?.ogExtra()
                         if (unfurlResult != null) {
                             bookmarkRepository.saveAndSyncBookmark(
-//                                metadataToBookmarkMapper.map(data).apply {
-                                unfurlResult.toBookmarkMapper(address()).apply {
-                                    folderId = folderTree().folderId
+                                unfurlResult.toBookmarkMapper(currentAddress).apply {
+                                    folderId = currentFolderId
                                     name = extra?.name
                                     mediaType = extra?.mediaType
                                 }
                             )
+                            _uiState.value = _uiState.value.copy(isSaving = false, bookmarkSaved = true)
+                            withContext(Dispatchers.Main) { onSuccess() }
+                        } else {
+                            bookmarkRepository.saveAndSyncBookmark(
+                                Bookmark(
+                                    rawUrl = currentAddress,
+                                    url = currentAddress,
+                                    title = currentTitle,
+                                    folderId = currentFolderId
+                                )
+                            )
+                            _uiState.value = _uiState.value.copy(isSaving = false, bookmarkSaved = true)
+                            withContext(Dispatchers.Main) { onSuccess() }
                         }
-//                    }
+                    }
+                } catch (e: Exception) {
+                    Log.e("tassel", "Error saving bookmark", e)
+                    _uiState.value = _uiState.value.copy(
+                        isSaving = false,
+                        saveError = "Couldn't save bookmark. Try again."
+                    )
                 }
             }
         }
+    }
+
+    fun clearSavedState() {
+        _uiState.value = _uiState.value.copy(bookmarkSaved = false)
     }
 
     fun loadBookmark(id: Long) {

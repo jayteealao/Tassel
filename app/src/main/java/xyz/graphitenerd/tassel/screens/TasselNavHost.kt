@@ -74,7 +74,6 @@ fun TasselNavHost(
             "${Screens.ADDNEW.name}?id={id}",
             arguments = listOf(
                 navArgument("id") {
-//                                    nullable = true
                     type = NavType.StringType
                     defaultValue = "0"
                 }
@@ -83,7 +82,8 @@ fun TasselNavHost(
             AddBookmarkScreen(
                 addNewVM = addNewBookmarkViewModel,
                 bookmarkViewModel = bookmarkViewModel,
-                backStackEntry.arguments?.getString("id")?.toLong()
+                bookmarkId = backStackEntry.arguments?.getString("id")?.toLong(),
+                onBack = { navController.popBackStack() }
             )
         }
         composable(Screens.FOLDERS.name) {

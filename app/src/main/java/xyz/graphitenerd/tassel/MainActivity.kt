@@ -85,11 +85,15 @@ class MainActivity : ComponentActivity() {
                             }
                         )
 
-                        AnimatedVisibility(
-                            visible = navController
-                                .currentBackStackEntryAsState()
-                                .value?.destination?.route?.startsWith(Screens.ADDNEW.name)?.not() ?: false
-                        ) {
+                        val currentRoute = navController
+                            .currentBackStackEntryAsState()
+                            .value?.destination?.route
+                        
+                        val showBottomNav = currentRoute != null && 
+                            (currentRoute == Screens.RECENTS.name || 
+                             currentRoute == Screens.FOLDERS.name)
+                        
+                        AnimatedVisibility(visible = showBottomNav) {
                             Box(
                                 modifier = Modifier
                                     .background(color = Color(0xff, 0xff, 0xff, 128))

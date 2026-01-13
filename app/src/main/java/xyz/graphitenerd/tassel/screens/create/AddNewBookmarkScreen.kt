@@ -1,66 +1,73 @@
 package xyz.graphitenerd.tassel.screens.create
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import xyz.graphitenerd.tassel.model.BookMarkForm
 import xyz.graphitenerd.tassel.model.Bookmark
 import xyz.graphitenerd.tassel.model.EmptyBookmark
 import xyz.graphitenerd.tassel.screens.recents.BookmarkViewModel
-import xyz.graphitenerd.tassel.ui.BookmarkCard
-import xyz.graphitenerd.tassel.ui.FolderDropDownMenu
+import xyz.graphitenerd.tassel.ui.FileTree
+import xyz.graphitenerd.tassel.ui.FolderBottomSheet
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AddBookmarkScreen(
     addNewVM: NewBookmarkViewModel,
     bookmarkViewModel: BookmarkViewModel,
-    bookmarkId: Long? = 0
+    bookmarkId: Long? = 0,
+    onBack: () -> Unit = {}
 ) {
-
+    val scope = rememberCoroutineScope()
     val formChassis = addNewVM.bookmarkForm
-    val formState = formChassis.state.collectAsState()
-    val previewBookmark = addNewVM.bookmarkStateFlow.collectAsState()
-    var isExpanded by remember { mutableStateOf(false) }
+    val formState by formChassis.state.collectAsState()
+    val previewBookmark by addNewVM.bookmarkStateFlow.collectAsState()
+    val uiState by addNewVM.uiState.collectAsState()
     val currentFolder by addNewVM.currentFolder.collectAsState()
+
+    var showFolderSheet by remember { mutableStateOf(false) }
+    var selectedFolder by remember { mutableStateOf<FileTree?>(null) }
+    
+    val bottomSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true
+    )
+
+    val isEditMode = bookmarkId != 0L
 
     DisposableEffect(bookmarkId) {
         if (bookmarkId != 0L) {
@@ -69,153 +76,158 @@ fun AddBookmarkScreen(
         onDispose { addNewVM.resetForm() }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "New Bookmark",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
+    LaunchedEffect(showFolderSheet) {
+        if (showFolderSheet) {
+            bottomSheetState.show()
+        } else {
+            bottomSheetState.hide()
+        }
+    }
+
+    BackHandler(enabled = bottomSheetState.isVisible) {
+        scope.launch {
+            bottomSheetState.hide()
+            showFolderSheet = false
+        }
+    }
+
+    val url = formState.address.value.orEmpty()
+    LaunchedEffect(url) {
+        if (url.isBlank() || url.length < 8) return@LaunchedEffect
+        delay(800)
+        addNewVM.fetchMetadataForUrl(url)
+    }
+
+    FolderBottomSheet(
+        sheetState = bottomSheetState,
+        currentFolder = currentFolder,
+        selectedFolder = selectedFolder,
+        onNavigateToFolder = { addNewVM.refreshCurrentFolder(it) },
+        onFolderSelected = { folder ->
+            selectedFolder = if (folder.folderId == selectedFolder?.folderId) null else folder
+        },
+        onCreateFolder = { },
+        onDismiss = {
+            scope.launch {
+                bottomSheetState.hide()
+                showFolderSheet = false
+            }
+        },
+        onConfirm = {
+            selectedFolder?.let { formChassis.update(BookMarkForm::folderTree, it) }
+            scope.launch {
+                bottomSheetState.hide()
+                showFolderSheet = false
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = if (isEditMode) "Edit Bookmark" else "New Bookmark",
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.Black
+                            )
+                        }
+                    },
+                    backgroundColor = Color.White,
+                    contentColor = Color.Black,
+                    elevation = 0.dp
                 )
             },
-            navigationIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to previous screen",
-                        tint = Color.Black
-                    )
-                }
+            bottomBar = {
+                PrimaryActionBar(
+                    isSaving = uiState.isSaving,
+                    isEnabled = formState.address.value?.isNotBlank() == true,
+                    saveError = uiState.saveError,
+                    onClick = { addNewVM.saveBookmarkForm(onSuccess = onBack) }
+                )
             },
-            backgroundColor = Color.White,
-            contentColor = Color.Black,
-            elevation = 0.dp
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp, 0.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Divider(color = Color.Black)
-            Spacer(modifier = Modifier.height(8.dp))
-            FormInput(
-                label = "Title",
-                imageVector = Icons.Default.Info,
-                value = formState.value.title.value ?: "",
-                onValueChange = { formChassis.update(BookMarkForm::title, it) }
+            backgroundColor = Color.White
+        ) { innerPadding ->
+            AddBookmarkContent(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                urlValue = formState.address.value.orEmpty(),
+                titleValue = formState.title.value.orEmpty(),
+                selectedFolder = formState.folderTree.value,
+                previewBookmark = if (previewBookmark == EmptyBookmark) null 
+                    else previewBookmark as Bookmark,
+                isFetchingMetadata = uiState.isFetchingMetadata,
+                urlError = uiState.urlError,
+                onUrlChange = { formChassis.update(BookMarkForm::address, it) },
+                onTitleChange = { formChassis.update(BookMarkForm::title, it) },
+                onFolderClick = { showFolderSheet = true }
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            FormInput(
-                label = "Address",
-                imageVector = Icons.Default.Build,
-                value = formState.value.address.value ?: "",
-                onValueChange = { formChassis.update(BookMarkForm::address, it) }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = Color.Black)
-            BookmarkPreview(
-                show = previewBookmark.value != EmptyBookmark,
-                bookmark = if (previewBookmark.value == EmptyBookmark) {
-                    null
-                } else { previewBookmark.value as Bookmark }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            FolderDropDownMenu(
-                fileTree = currentFolder,
-                selectedFolder = formState.value.folderTree.value,
-                isExpanded = isExpanded,
-                onExpand = { isExpanded = !isExpanded },
-                onNavigate = { addNewVM.refreshCurrentFolder(it) },
-                onDismissRequest = { isExpanded = false },
-                onFolderSelected = {
-                    formChassis.update(BookMarkForm::folderTree, it)
-                }
-            )
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(
-                    onClick = { addNewVM.previewBookmarkForm() },
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color(0xFF2D8445),
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(40.dp, 0.dp)
-                ) {
-                    Text(text = "Preview")
-                }
-                Button(
-                    onClick = { addNewVM.saveBookmarkForm() },
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = Color.DarkGray,
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(16.dp, 0.dp)
-                ) {
-                    Text(text = "Add Bookmark")
-                }
-            }
         }
     }
 }
 
 @Composable
-fun BookmarkPreview(
-    show: Boolean,
-    bookmark: Bookmark?,
-    modifier: Modifier = Modifier
+private fun AddBookmarkContent(
+    modifier: Modifier = Modifier,
+    urlValue: String,
+    titleValue: String,
+    selectedFolder: FileTree?,
+    previewBookmark: Bookmark?,
+    isFetchingMetadata: Boolean,
+    urlError: String?,
+    onUrlChange: (String) -> Unit,
+    onTitleChange: (String) -> Unit,
+    onFolderClick: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = show,
+    val scrollState = rememberScrollState()
+    
+    Column(
         modifier = modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
+            .background(Color.White)
+            .padding(horizontal = 20.dp)
+            .verticalScroll(scrollState)
     ) {
-        if (bookmark != null) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.background(Color.White)
-            ) {
-                BookmarkCard(bookmark = bookmark)
-                Divider(color = Color.Black)
-            }
-        }
-    }
-}
+        Divider(color = Color.Black)
+        Spacer(Modifier.height(16.dp))
 
-@Composable
-fun FormInput(label: String, imageVector: ImageVector, value: String, onValueChange: (String) -> Unit) {
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(
-            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp, top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Icon(imageVector = imageVector, contentDescription = "$label icon")
-            Text(
-                text = label,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(start = 8.dp),
-            )
-        }
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = value,
-            onValueChange = onValueChange,
-            shape = RoundedCornerShape(16.dp),
-            colors = TextFieldDefaults.outlinedTextFieldColors(unfocusedBorderColor = Color.Black)
+        UrlFieldSection(
+            value = urlValue,
+            isLoading = isFetchingMetadata,
+            error = urlError,
+            onValueChange = onUrlChange
         )
-    }
-}
 
-@Preview
-@Composable
-fun ScreenPreview() {
-    FormInput(label = "Title", imageVector = Icons.Default.Info, value = "google", onValueChange = {})
+        Spacer(Modifier.height(16.dp))
+
+        TitleFieldSection(
+            value = titleValue,
+            onValueChange = onTitleChange
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        FolderSelectorRow(
+            selectedFolder = selectedFolder,
+            onClick = onFolderClick
+        )
+
+        Spacer(Modifier.height(20.dp))
+        Divider(color = Color.Black)
+        Spacer(Modifier.height(12.dp))
+
+        PreviewSection(
+            isLoading = isFetchingMetadata,
+            bookmark = previewBookmark
+        )
+
+        Spacer(Modifier.height(80.dp))
+    }
 }

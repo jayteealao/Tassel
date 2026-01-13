@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import com.valentinilk.shimmer.ShimmerBounds
 import com.valentinilk.shimmer.ShimmerTheme
 import com.valentinilk.shimmer.rememberShimmer
@@ -62,7 +63,7 @@ class IntentActivity : ComponentActivity() {
 
         val newBookmarkViewModel: NewBookmarkViewModel by viewModels()
 
-        val receivedUrl: Uri? = intent?.data ?: Uri.parse(intent.getStringExtra(Intent.EXTRA_TEXT))
+        val receivedUrl: Uri? = intent?.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
 
         val bookmarkForm = newBookmarkViewModel.bookmarkForm
 
