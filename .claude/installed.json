@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "installedAt": "2026-01-12T12:31:02.002Z",
+  "updatedAt": "2026-01-12T12:31:02.002Z",
+  "plugins": [
+    {
+      "name": "compound-engineering",
+      "version": "3.0.1",
+      "sourcePath": "C:\\Users\\jayte\\Documents\\dev\\compound-engineering-plugin",
+      "installedAt": "2026-01-12T12:31:02.002Z",
+      "components": {
+        "agents": 17,
+        "commands": 9,
+        "skills": 6,
+        "mcpServers": 3,
+        "variants": 0
+      },
+      "installedTo": [
+        "claude"
+      ]
+    }
+  ]
+}
